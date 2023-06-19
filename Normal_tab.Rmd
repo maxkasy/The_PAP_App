@@ -1,0 +1,137 @@
+Column {data-width=300}
+-------------------------------------
+
+### Parameters
+
+
+Separate entries by comma!
+```{r}
+textInput("etaJ_normal", "Probability of observing components", value = "0.9,0.5", width = NULL,
+  placeholder = NULL)
+```
+
+
+Prior parameters of normal prior:
+```{r}
+textInput("mu", "Prior mean vector", value = "1,1", width = NULL,
+  placeholder = NULL)
+textInput("Sigma", "Prior variance matrix", value = "2,1,1,2", width = NULL,
+  placeholder = NULL)
+```
+
+Test:
+```{r}
+textInput("mu0", "Mean vector under the null", value = "0,0", width = NULL,
+  placeholder = NULL)
+textInput("Sigma0", "Variance matrix under the null", value = "1,0,0,1", width = NULL,
+  placeholder = NULL)
+
+numericInput('size_normal', 'Size of test', .1, step = .01, min = 0, max = 1)
+```
+
+
+```{r}
+actionButton('run_normal', 'Run')
+```
+
+
+
+Column {data-width=400}
+-------------------------------------
+
+```{r}
+  #object to store calculation results
+  v_normal = reactiveValues()
+
+  observeEvent(input$run_normal, {
+    v_normal$etaJ = unlist(strsplit(input$etaJ_normal, ",")) |> as.numeric()
+    v_normal$mu0 = unlist(strsplit(input$mu0, ",")) |> as.numeric()
+    v_normal$n = length(v_normal$mu0)
+    v_normal$Sigma0 = unlist(strsplit(input$Sigma0, ",")) |> as.numeric() |> 
+        matrix(nrow = v_normal$n)
+    v_normal$mu = unlist(strsplit(input$mu, ",")) |> as.numeric()
+    v_normal$Sigma = unlist(strsplit(input$Sigma, ",")) |> as.numeric() |> 
+        matrix(nrow = v_normal$n)
+    
+    # Check if input values are valid numerical vector
+    v_normal$valid_inputs = !any(is.na(c(v_normal$etaJ, 
+                                         v_normal$mu0,
+                                         v_normal$n,
+                                         v_normal$Sigma0,
+                                         v_normal$mu,
+                                         v_normal$Sigma)))
+
+    if (v_normal$valid_inputs){  
+        v_normal$output_normal = normal_data(etaJ = v_normal$etaJ, 
+                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                           mu = v_normal$mu, Sigma = v_normal$Sigma,
+                           size = input$size_normal,
+                           steps = 10)
+    } else {
+        v_normal$output_normal = "Invalid input values"
+    }
+  })
+```
+
+
+### The optimal PAP {data-height=750}
+```{r}
+renderTable({
+    req(v_normal$output_normal)
+    if (v_normal$valid_inputs){ 
+        v_normal$output_normal |> 
+            filter(t>0) |> 
+            arrange(t)
+    } else {
+        v_normal$output_normal
+    }
+  },
+  digits = 2
+)
+```
+
+
+
+### Notes {data-height=150}
+
+Each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
+Values of X that are not displayed have t = 0 (no rejection).
+
+### Save optimal PAP as *csv* file. {data-height=100}
+
+```{r}
+downloadLink("download_normal", "Download PAP", style = "font-size: 20px;")
+output$download_normal = 
+    downloadHandler(
+    filename = paste(Sys.Date(), "_normal_pap.csv", sep = ""),
+    content = function(file) {
+      write_csv(v_normal$output_normal, file)
+    }
+  )
+```
+
+Column {data-width=300}
+-------------------------------------
+### Plot for the 2d case {data-height=100}
+```{r}
+bound = 4
+renderPlot({
+    req(v_normal$output_normal)
+    if (v_normal$valid_inputs){ 
+        v_normal$output_normal |> 
+        ggplot(aes(xmin = X_lower1, xmax = X_upper1, 
+                   ymin = X_lower2, ymax = X_upper2)) +
+        xlim(-bound, bound) + ylim(-bound, bound) +
+        coord_fixed() +
+        geom_rect(aes(fill = t)) +
+        scale_fill_viridis_c() +
+        labs(fill = "Rejection prob",
+             x = TeX("$X_1$"), y = TeX("$X_2$")) +
+        theme_ipsum_rc()
+    }
+  }
+)
+
+```
+
+

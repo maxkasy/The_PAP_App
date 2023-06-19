@@ -1,0 +1,95 @@
+Column {data-width=300}
+-------------------------------------
+    
+    
+### Parameters
+    
+Separate probabilities by comma!
+```{r}
+textInput("etaJ_binary", "Probability of observing components", value = "0.9,0.5", width = NULL,
+          placeholder = NULL)
+```
+
+
+Prior parameters of beta prior:
+    ```{r}
+numericInput('alpha', 'alpha', 1, step = .1, min = 0)
+numericInput('beta', 'beta', 1, step = .1, min = 0)
+```
+
+Test:
+    ```{r}
+numericInput('minp_binary', 'Null hypothesis', .2, step = .1, min = 0, max = 1)
+numericInput('size_binary', 'Size of test', .1, step = .01, min = 0, max = 1)
+```
+
+
+```{r}
+actionButton('run_binary', 'Run')
+```
+
+
+
+
+
+
+Column {data-width=700}
+-------------------------------------
+    
+    
+    ```{r}
+#object to store calculation results
+v_binary = reactiveValues()
+
+observeEvent(input$run_binary, {
+    v_binary$etaJ = unlist(strsplit(input$etaJ_binary, ",")) |> as.numeric()
+    
+    # Check if input values are valid numerical vector
+    v_binary$valid_inputs = !any(is.na(v_binary$etaJ))
+    
+    if (v_binary$valid_inputs){
+        v_binary$output_binary = binary_data(etaJ = v_binary$etaJ,
+                           minp = input$minp_binary, size = input$size_binary,
+                           alpha = input$alpha, beta = input$beta)
+    } else {
+        v_binary$output_binary = "Invalid input values"
+    }
+})
+```
+
+
+### The optimal PAP {data-height=750}
+```{r}
+renderTable({
+    req(v_binary$output_binary)
+    if (v_binary$valid_inputs){
+        v_binary$output_binary |> 
+            filter(t>0) |> 
+            arrange(t)
+    } else {
+        v_binary$output_binary
+    }
+    },
+    digits = 2
+)
+```
+
+### Notes {data-height=150}
+
+Each row of this table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
+Values of X that are not displayed have t = 0 (no rejection).
+
+
+### Save optimal PAP as *csv* file. {data-height=100}
+
+```{r}
+downloadLink("download_binary", "Download PAP", style = "font-size: 20px;")
+output$download_binary = 
+    downloadHandler(
+    filename = paste(Sys.Date(), "_binary_pap.csv", sep = ""),
+    content = function(file) {
+        write_csv(v_binary$output_binary, file)
+    }
+)
+```
+

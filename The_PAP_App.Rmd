@@ -1,0 +1,34 @@
+---
+title: "The PAP App"
+resource_files:
+- License.md
+- Help.Rmd
+- Binary_tab.Rmd
+- Normal_tab.Rmd
+- optimal_implementable_test.R
+runtime: shiny
+output:
+  flexdashboard::flex_dashboard:
+    social: menu
+    theme: yeti
+source_code: embed
+---
+
+```{r global, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(tidyverse)
+source("optimal_implementable_test.R")
+```
+
+# Binary data
+```{r child = 'Binary_tab.Rmd'}
+```
+
+# Normal data 
+```{r child = 'Normal_tab.Rmd'}
+```
+
+# Help
+```{r child = 'Help.Rmd'}
+```
