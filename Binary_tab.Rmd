@@ -45,10 +45,12 @@ observeEvent(input$run_binary, {
     v_binary$etaJ = unlist(strsplit(input$etaJ_binary, ",")) |> as.numeric()
     
     # Check if input values are valid numerical vector
-    v_binary$valid_inputs = !any(is.na(v_binary$etaJ))
+    v_binary$valid_inputs = check_inputs_binary_data(etaJ = v_binary$etaJ,
+                           minp = input$minp_binary, size = input$size_binary,
+                           alpha = input$alpha, beta = input$beta)
     
     if (v_binary$valid_inputs){
-        v_binary$output_binary = binary_data(etaJ = v_binary$etaJ,
+        v_binary$output_binary = pap_binary_data(etaJ = v_binary$etaJ,
                            minp = input$minp_binary, size = input$size_binary,
                            alpha = input$alpha, beta = input$beta)
     } else {

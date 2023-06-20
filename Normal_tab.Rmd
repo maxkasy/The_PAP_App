@@ -54,19 +54,16 @@ Column {data-width=400}
         matrix(nrow = v_normal$n)
     
     # Check if input values are valid numerical vector
-    v_normal$valid_inputs = !any(is.na(c(v_normal$etaJ, 
-                                         v_normal$mu0,
-                                         v_normal$n,
-                                         v_normal$Sigma0,
-                                         v_normal$mu,
-                                         v_normal$Sigma)))
-
-    if (v_normal$valid_inputs){  
-        v_normal$output_normal = normal_data(etaJ = v_normal$etaJ, 
+    v_normal$valid_inputs = check_inputs_normal_data(etaJ = v_normal$etaJ, 
                            mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
                            mu = v_normal$mu, Sigma = v_normal$Sigma,
-                           size = input$size_normal,
-                           steps = 10)
+                           size = input$size_normal)
+
+    if (v_normal$valid_inputs){  
+        v_normal$output_normal = pap_normal_data(etaJ = v_normal$etaJ, 
+                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                           mu = v_normal$mu, Sigma = v_normal$Sigma,
+                           size = input$size_normal)
     } else {
         v_normal$output_normal = "Invalid input values"
     }
@@ -117,17 +114,9 @@ Column {data-width=300}
 bound = 4
 renderPlot({
     req(v_normal$output_normal)
-    if (v_normal$valid_inputs){ 
+    if (v_normal$valid_inputs & v_normal$n == 2){ 
         v_normal$output_normal |> 
-        ggplot(aes(xmin = X_lower1, xmax = X_upper1, 
-                   ymin = X_lower2, ymax = X_upper2)) +
-        xlim(-bound, bound) + ylim(-bound, bound) +
-        coord_fixed() +
-        geom_rect(aes(fill = t)) +
-        scale_fill_viridis_c() +
-        labs(fill = "Rejection prob",
-             x = TeX("$X_1$"), y = TeX("$X_2$")) +
-        theme_ipsum_rc()
+            plot_2d_normal()
     }
   }
 )

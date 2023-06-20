@@ -4,7 +4,7 @@ library(mvtnorm)
 library(hrbrthemes)
 library(latex2exp)
 
-setwd(here::here())
+# setwd(here::here())
 
 optimal_test = function(X, #list of values for x
                         P_X, #vector mapping elements of X into prior marginal probabilities
@@ -77,7 +77,7 @@ optimal_test = function(X, #list of values for x
 
 
 
-binary_data = function(etaJ, # prob of observing each component
+pap_binary_data = function(etaJ, # prob of observing each component
                        minp = .2, size = .1, # null hypothesis and size constraint
                        alpha = 1, beta = 1) { # parameters of Beta prior for theta
     n = length(etaJ)
@@ -102,21 +102,23 @@ binary_data = function(etaJ, # prob of observing each component
         mutate(t = t)
 }
 
-normal_data = function(etaJ, 
+
+
+pap_normal_data = function(etaJ, 
                        mu0, Sigma0,
                        mu, Sigma,
-                       size = .1,
-                       steps = 10) {
+                       size = .1) {
     n = length(etaJ)
     J = map(0:(2 ^ n - 1), ~ as.numeric(intToBits(.x))[1:n]) 
     # bernoulli distributions for the components of J, with different probabilities
     P_J = map_dbl(J, ~ prod(.x * etaJ + (1 - .x) * (1 - etaJ)))
-  
+    
     #Create list of all combinations of possible values for the steps, for n componens
     # QUESTION: Can we choose this more intelligently, e.g. dropping lower values where we would not reject anyway?    
-    pstep_vec = seq(1/steps,1,by=1/steps)
+    # pstep_vec = c(seq(.1,1,by=.1))
+    pstep_vec = c(.025, .05, .1, .2, .35, .5, .65, .8, .9, .95, .975, 1)
+    
     X_component_quantiles = map(1:n, ~ qnorm(pstep_vec, mean = mu0[.x], sd = sqrt(Sigma0[.x,.x])))
-
     X_steps = expand_grid(!!!rep(list(1:length(pstep_vec)), n)) |> 
         t() |> as.data.frame() |> as.list()
     # Create list of corresponding quantiles for the P0 distribution    
@@ -159,3 +161,36 @@ normal_data = function(etaJ,
         mutate(t = t)
 }
 
+
+# Helper functions to check whether arguments are valid
+check_inputs_binary_data = function(etaJ, # prob of observing each component
+                                    minp = .2, size = .1, # null hypothesis and size constraint
+                                    alpha = 1, beta = 1) { # parameters of Beta prior for theta
+  !any(is.na(etaJ))
+}
+
+check_inputs_normal_data = function(etaJ, 
+                           mu0, Sigma0,
+                           mu, Sigma,
+                           size = .1) {
+
+    !any(is.na(c(etaJ, mu0, n, Sigma0,
+                 mu, Sigma)))
+}
+
+# Plotting results 
+
+plot_2d_normal = function(output_normal){
+    bound = 4 # range of coordinates
+    
+    output_normal |> 
+        ggplot(aes(xmin = X_lower1, xmax = X_upper1, 
+                   ymin = X_lower2, ymax = X_upper2)) +
+        xlim(-bound, bound) + ylim(-bound, bound) +
+        coord_fixed() +
+        geom_rect(aes(fill = t)) +
+        scale_fill_viridis_c() +
+        labs(fill = "Rejection prob",
+             x = TeX("$X_1$"), y = TeX("$X_2$")) +
+        theme_ipsum_rc()
+}

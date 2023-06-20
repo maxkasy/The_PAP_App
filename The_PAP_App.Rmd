@@ -17,7 +17,6 @@ source_code: embed
 ```{r global, include=FALSE}
 library(flexdashboard)
 library(shiny)
-library(tidyverse)
 source("optimal_implementable_test.R")
 ```
 
