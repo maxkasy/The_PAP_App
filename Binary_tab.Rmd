@@ -21,7 +21,9 @@ Test:
     ```{r}
 numericInput('minp_binary', 'Null hypothesis', .2, step = .1, min = 0, max = 1)
 numericInput('size_binary', 'Size of test', .1, step = .01, min = 0, max = 1)
+checkboxInput("simple_pap_binary", "Use a simple cutoff rule", FALSE)
 ```
+
 
 
 ```{r}
@@ -33,7 +35,7 @@ actionButton('run_binary', 'Run')
 
 
 
-Column {data-width=700}
+Column {data-width=400}
 -------------------------------------
     
     
@@ -49,38 +51,44 @@ observeEvent(input$run_binary, {
                            minp = input$minp_binary, size = input$size_binary,
                            alpha = input$alpha, beta = input$beta)
     
-    if (v_binary$valid_inputs){
-        v_binary$output_binary = pap_binary_data(etaJ = v_binary$etaJ,
-                           minp = input$minp_binary, size = input$size_binary,
-                           alpha = input$alpha, beta = input$beta)
+    if (v_binary$valid_inputs){ 
+        if (input$simple_pap_binary == F){ # Use the optimal test
+            v_binary$output = pap_binary_data(etaJ = v_binary$etaJ,
+                               minp = input$minp_binary, size = input$size_binary,
+                               alpha = input$alpha, beta = input$beta) 
+           v_binary$output$test = v_binary$output$test |>
+                filter(t>0) |>
+                arrange(t)
+        } else { # Use a simple test
+            v_binary$output = pap_binary_data_simple(etaJ = v_binary$etaJ,
+                               minp = input$minp_binary, size = input$size_binary,
+                               alpha = input$alpha, beta = input$beta)
+        }
     } else {
-        v_binary$output_binary = "Invalid input values"
+        v_binary$output$test = "Invalid input values"
+        v_binary$output$expected_power = NaN
     }
 })
 ```
 
 
-### The optimal PAP {data-height=750}
+
+### The optimal PAP {data-height=700}
 ```{r}
 renderTable({
-    req(v_binary$output_binary)
-    if (v_binary$valid_inputs){
-        v_binary$output_binary |> 
-            filter(t>0) |> 
-            arrange(t)
-    } else {
-        v_binary$output_binary
-    }
-    },
-    digits = 2
+    req(v_binary$output)
+    v_binary$output$test
+},
+digits = 2
 )
 ```
 
-### Notes {data-height=150}
+### Notes {data-height=200}
 
-Each row of this table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
+For optimal PAPs, each row of this table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
 Values of X that are not displayed have t = 0 (no rejection).
 
+For simple cutoff rules, the table shows the components of X used by the test, the cutoff in terms of the sum of these components, and the rejection probability when the sum is exactly at the cutoff.
 
 ### Save optimal PAP as *csv* file. {data-height=100}
 
@@ -90,8 +98,21 @@ output$download_binary =
     downloadHandler(
     filename = paste(Sys.Date(), "_binary_pap.csv", sep = ""),
     content = function(file) {
-        write_csv(v_binary$output_binary, file)
+        write_csv(v_binary$output, file)
     }
 )
 ```
+
+Column {data-width=300}
+-------------------------------------
+
+### Expected power
+
+```{r}
+renderValueBox({
+  valueBox(round(mean(v_binary$output$expected_power), digits=2))
+})
+```
+
+
 

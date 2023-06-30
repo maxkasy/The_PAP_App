@@ -27,6 +27,7 @@ textInput("Sigma0", "Variance matrix under the null", value = "1,0,0,1", width =
   placeholder = NULL)
 
 numericInput('size_normal', 'Size of test', .1, step = .01, min = 0, max = 1)
+checkboxInput("simple_pap_normal", "Use a simple cutoff rule", FALSE)
 ```
 
 
@@ -52,6 +53,7 @@ Column {data-width=400}
     v_normal$mu = unlist(strsplit(input$mu, ",")) |> as.numeric()
     v_normal$Sigma = unlist(strsplit(input$Sigma, ",")) |> as.numeric() |> 
         matrix(nrow = v_normal$n)
+    v_normal$plot_test = F # Flag for plotting 2d optimal testing rule
     
     # Check if input values are valid numerical vector
     v_normal$valid_inputs = check_inputs_normal_data(etaJ = v_normal$etaJ, 
@@ -60,12 +62,29 @@ Column {data-width=400}
                            size = input$size_normal)
 
     if (v_normal$valid_inputs){  
-        v_normal$output_normal = pap_normal_data(etaJ = v_normal$etaJ, 
+        if (input$simple_pap_normal == F){ # Use the optimal test
+            v_normal$output = pap_normal_data(etaJ = v_normal$etaJ, 
                            mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
                            mu = v_normal$mu, Sigma = v_normal$Sigma,
                            size = input$size_normal)
+            v_normal$output$test_display = v_normal$output$test |>
+                filter(t>0) |>
+                arrange(t)
+            v_normal$plot_test = (v_normal$n == 2) 
+        } else { # Use a simple test
+            v_normal$output = pap_normal_data_simple(etaJ = v_normal$etaJ, 
+                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                           mu = v_normal$mu, Sigma = v_normal$Sigma,
+                           size = input$size_normal)
+            v_normal$output$test_display = v_normal$output$test
+        }
+        
+        
+        
+        
     } else {
-        v_normal$output_normal = "Invalid input values"
+        v_normal$output$test = "Invalid input values"
+        v_normal$output$expected_power = NaN
     }
   })
 ```
@@ -74,14 +93,8 @@ Column {data-width=400}
 ### The optimal PAP {data-height=750}
 ```{r}
 renderTable({
-    req(v_normal$output_normal)
-    if (v_normal$valid_inputs){ 
-        v_normal$output_normal |> 
-            filter(t>0) |> 
-            arrange(t)
-    } else {
-        v_normal$output_normal
-    }
+    req(v_normal$output)
+    v_normal$output$test_display
   },
   digits = 2
 )
@@ -91,8 +104,12 @@ renderTable({
 
 ### Notes {data-height=150}
 
-Each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
+For optimal PAPs, each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
 Values of X that are not displayed have t = 0 (no rejection).
+
+For simple cutoff rules, the table shows the components of X used by the test, and the cutoff in terms of the sum of these components.
+
+
 
 ### Save optimal PAP as *csv* file. {data-height=100}
 
@@ -102,20 +119,32 @@ output$download_normal =
     downloadHandler(
     filename = paste(Sys.Date(), "_normal_pap.csv", sep = ""),
     content = function(file) {
-      write_csv(v_normal$output_normal, file)
+      write_csv(v_normal$output, file)
     }
   )
 ```
 
 Column {data-width=300}
 -------------------------------------
-### Plot for the 2d case {data-height=100}
+
+### Expected power for the optimal PAP 
+
+
+```{r}
+renderValueBox({
+  valueBox(round(mean(v_normal$output$expected_power), digits=2))
+})
+```
+
+
+
+### Plot for the 2d case
 ```{r}
 bound = 4
 renderPlot({
-    req(v_normal$output_normal)
-    if (v_normal$valid_inputs & v_normal$n == 2){ 
-        v_normal$output_normal |> 
+    req(v_normal$output)
+    if (v_normal$plot_test){ 
+        v_normal$output$test |> 
             plot_2d_normal()
     }
   }

@@ -18,6 +18,7 @@ source_code: embed
 library(flexdashboard)
 library(shiny)
 source("optimal_implementable_test.R")
+source("optimal_simple_test.R")
 ```
 
 # Binary data

@@ -69,7 +69,7 @@ optimal_test = function(X, #list of values for x
     # return only the solution for the full data test
     t = solve$solution[1:N]
     names(t) = map(X, ~ paste0(round(.x, digits=2), collapse = ","))
-    t
+    list(t = t, expected_power= solve$objval)
 }
 
 
@@ -91,15 +91,15 @@ pap_binary_data = function(etaJ, # prob of observing each component
     # beta-binomial distribution for sum(x), for beta prior over theta
     P_X = map_dbl(X, ~ beta(sum(.x) + alpha, n - sum(.x) + beta) / beta(alpha, beta))
 
-    t = optimal_test(X, P_X, P_J, P0_X, size)
+    solution = optimal_test(X, P_X, P_J, P0_X, size)
 
     # Formatting output
     X_tibble =
         do.call(rbind, X) |> 
         as_tibble(.name_repair = "unique") 
     names(X_tibble) = paste0("X", 1:n)
-    X_tibble|> 
-        mutate(t = t)
+    list(test = X_tibble|> mutate(t = solution$t),
+         expected_power = solution$expected_power)
 }
 
 
@@ -113,7 +113,7 @@ pap_normal_data = function(etaJ,
     # bernoulli distributions for the components of J, with different probabilities
     P_J = map_dbl(J, ~ prod(.x * etaJ + (1 - .x) * (1 - etaJ)))
     
-    #Create list of all combinations of possible values for the steps, for n componens
+    #Create list of all combinations of possible values for the steps, for n components
     # QUESTION: Can we choose this more intelligently, e.g. dropping lower values where we would not reject anyway?    
     # pstep_vec = c(seq(.1,1,by=.1))
     pstep_vec = c(.025, .05, .1, .2, .35, .5, .65, .8, .9, .95, .975, 1)
@@ -146,7 +146,7 @@ pap_normal_data = function(etaJ,
                             mean = mu, 
                             sigma = Sigma))
 
-    t = optimal_test(X, P_X, P_J, P0_X, size)
+    solution = optimal_test(X, P_X, P_J, P0_X, size)
 
     # Formatting output
     X_upper = do.call(rbind, 
@@ -157,8 +157,8 @@ pap_normal_data = function(etaJ,
                       map(X_steps, ~ X_q_fun(.x-1))) |>  
         as_tibble(.name_repair = "unique")
     names(X_lower) = paste0("X_lower", 1:n)
-    bind_cols(X_upper, X_lower) |> 
-        mutate(t = t)
+    list(test = bind_cols(X_upper, X_lower) |> mutate(t = solution$t),
+         expected_power = solution$expected_power)
 }
 
 
@@ -166,22 +166,35 @@ pap_normal_data = function(etaJ,
 check_inputs_binary_data = function(etaJ, # prob of observing each component
                                     minp = .2, size = .1, # null hypothesis and size constraint
                                     alpha = 1, beta = 1) { # parameters of Beta prior for theta
-  !any(is.na(etaJ))
+  !any(is.na(etaJ)) &
+        (size >= 0) &
+        (alpha > 0) &
+        (beta > 0) &
+        (minp >= 0)  &
+        (minp <= 1) 
 }
 
 check_inputs_normal_data = function(etaJ, 
                            mu0, Sigma0,
                            mu, Sigma,
                            size = .1) {
-
-    !any(is.na(c(etaJ, mu0, n, Sigma0,
-                 mu, Sigma)))
+    n = length(etaJ)
+    !any(is.na(c(etaJ, mu0, n, Sigma0, mu, Sigma))) &
+        (length(mu0) == n) &
+        (length(mu) == n) &
+        (nrow(Sigma0) == n) &
+        (ncol(Sigma0) == n) &        
+        (nrow(Sigma) == n) &
+        (ncol(Sigma) == n) &
+        all(t(Sigma0) == Sigma0) &
+        all(t(Sigma) == Sigma) &
+        (size >= 0)
 }
 
 # Plotting results 
 
 plot_2d_normal = function(output_normal){
-    bound = 4 # range of coordinates
+    bound = 3 # range of coordinates
     
     output_normal |> 
         ggplot(aes(xmin = X_lower1, xmax = X_upper1, 
