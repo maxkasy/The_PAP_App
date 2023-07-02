@@ -1,11 +1,12 @@
 ---
-title: "The PAP App"
+title: "The PAP App (beta version)"
 resource_files:
 - License.md
 - Help.Rmd
 - Binary_tab.Rmd
 - Normal_tab.Rmd
 - optimal_implementable_test.R
+- optimal_simple_test.R
 runtime: shiny
 output:
   flexdashboard::flex_dashboard:
