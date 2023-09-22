@@ -50,7 +50,7 @@ pap_binary_data_simple = function(etaJ, # prob of observing each component
     }
     # browser()
     list(test = tibble(Parameter = c("Components", "Cutoff for sum", "Rejection probability at the margin"),
-                       Value = c(paste0(eta_sorted$ix[1:istar],collapse = ","), zstar, kappastar)),
+                       Value = c(paste0(eta_sorted$ix[1:istar],collapse = ","), zstar, round(kappastar, digits = 2))),
          expected_power = optimal_power)
 }
 
@@ -81,7 +81,7 @@ pap_normal_data_simple = function(etaJ,
         # expected power
         power = p_j_plus*(1-pnorm(z, mu_Z, sqrt(Sigma_Z)))
 
-        print(c(j, z, power))
+        # print(c(j, z, power))
         if (power > optimal_power){
             optimal_power = power
             jstar = j
@@ -90,7 +90,7 @@ pap_normal_data_simple = function(etaJ,
     }
     
     list(test = tibble(Parameter = c("Components", "Cutoff for sum"),
-                       Value = c(paste0((1:n)[as.logical(jstar)],collapse = ","), zstar)),
+                       Value = c(paste0((1:n)[as.logical(jstar)],collapse = ","), round(zstar, digits = 3))),
          expected_power = optimal_power)
 }
 

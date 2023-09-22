@@ -38,7 +38,7 @@ The current version of the app allows for the following *four cases*:
 
 For optimal PAPs, the app solves the following linear programming problem:
 \begin{align*}
-  \max_{a, t} \sum_{X_J, J} a(X_J,J) \cdot  P_\Pi(X_J,J) & & & &\text{(Expected power)}\\
+  \max_{a, t} \sum_{X_J, J} a(X_J,J) \cdot  P_\pi(X_J,J) & & & &\text{(Expected power)}\\
   \text{s.t.}\quad
   \sum_{X}  t( X)  \cdot P_{\theta}(X) &\leq \alpha & \forall\;\theta \in \Theta_0,&&\text{(Size control)}\\
   a(X_J,J), t(X) &\in [0,1] & \forall\; J,X,&&\text{(Support)}\\

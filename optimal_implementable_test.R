@@ -116,7 +116,7 @@ pap_normal_data = function(etaJ,
     #Create list of all combinations of possible values for the steps, for n components
     # QUESTION: Can we choose this more intelligently, e.g. dropping lower values where we would not reject anyway?    
     # pstep_vec = c(seq(.1,1,by=.1))
-    pstep_vec = c(.025, .05, .1, .2, .35, .5, .65, .8, .9, .95, .975, 1)
+    pstep_vec = c(.0125, .025, .05, .1, .2, .35, .5, .65, .8, .9, .95, .975,  .9875, 1)
     
     X_component_quantiles = map(1:n, ~ qnorm(pstep_vec, mean = mu0[.x], sd = sqrt(Sigma0[.x,.x])))
     X_steps = expand_grid(!!!rep(list(1:length(pstep_vec)), n)) |> 
@@ -201,8 +201,8 @@ plot_2d_normal = function(output_normal){
                    ymin = X_lower2, ymax = X_upper2)) +
         xlim(-bound, bound) + ylim(-bound, bound) +
         coord_fixed() +
-        geom_rect(aes(fill = t)) +
-        scale_fill_viridis_c() +
+        geom_rect(aes(fill = factor(round(t, digits = 2)))) +
+        scale_fill_viridis_d() +
         labs(fill = "Rejection prob",
              x = TeX("$X_1$"), y = TeX("$X_2$")) +
         theme_ipsum_rc()
