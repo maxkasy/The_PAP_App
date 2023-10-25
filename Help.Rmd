@@ -4,9 +4,9 @@ editor_options:
     wrap: sentence
 ---
 
-## Column 1 {data-width="500"}
+## Column 1 {data-width="450"}
 
-### The PAP App {data-height="250"}
+### The PAP App
 
 Ever wondered what you should put in your pre-analysis plan (PAP)?
 We are here to help!
@@ -15,9 +15,9 @@ It will then produce a draft PAP.
 This PAP is valid, optimal, and derived from first principles.
 This is a **beta version** of the app, and for the time being the results should be used with caution!
 
-### General procedure {data-height="500"}
+### General procedure
 
-The *general procedure* is as follows: You specify a null hypothesis, and test size.
+The general procedure is as follows: You specify a null hypothesis, and test size.
 You furthermore specify a prior over the parameter, and probabilities for each of the components to be available.
 The tests produced by this app control size under the null, and maximize expected power.
 
@@ -26,16 +26,9 @@ When not all components are available, worst-case assumptions need to be made ab
 This procedure results in the test with the highest expected power that is incentive compatible and controls size.
 For more details see our workingpaper "Optimal Pre-Analysis Plans: Statistical Decisions Subject to Implementability" ([optimal_preanalysis_plans.pdf](https://maxkasy.github.io/home/files/papers/optimal_preanalysis_plans.pdf)), as well as the presentation slides ([implementable_preanalysis_slides_kasy.pdf](https://maxkasy.github.io/home/files/slides/implementable_preanalysis_slides_kasy.pdf)).
 
-### Four cases {data-height="250"}
 
-The current version of the app allows for the following *four cases*:
 
-1.  Binary outcomes, optimal PAP\
-2.  Binary outcomes, simple cutoff rule\
-3.  Normal outcomes, optimal PAP\
-4.  Normal outcomes, simple cutoff rule
-
-## Column 2 {data-width="500"}
+## Column 2 {data-width="550"}
 
 ### Linear program
 
@@ -49,3 +42,12 @@ For optimal PAPs, the app solves the following linear programming problem: \begi
 
 The app returns the solution for $t$.
 The test that should then be implemented is given by $$b(X_J,J) = \min_{X';\;X'_J=X_J} t(X').$$
+
+### Four cases
+
+The current version of the app allows for the following *four cases*:
+
+1.  Binary outcomes, optimal PAP\
+2.  Binary outcomes, simple cutoff rule\
+3.  Normal outcomes, optimal PAP\
+4.  Normal outcomes, simple cutoff rule

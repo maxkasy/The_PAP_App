@@ -12,6 +12,7 @@ output:
   flexdashboard::flex_dashboard:
     social: menu
     theme: yeti
+    css: styles.css
 source_code: embed
 ---
 

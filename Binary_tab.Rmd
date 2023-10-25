@@ -1,4 +1,4 @@
-Column {data-width=300}
+Input {data-width=300}
 -------------------------------------
 
 <font style="font-size: 25px">Parameters </font> 

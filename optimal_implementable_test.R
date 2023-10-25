@@ -166,7 +166,7 @@ pap_normal_data = function(etaJ,
         x = paste0("X",i)
         xl = paste0("X",i, "_l")
         xu = paste0("X",i, "_u")
-        test[[x]] = paste0("[",round(test[[xl]],2),",", round(test[[xu]],2),"]")
+        test[[x]] = paste0("[",round(test[[xl]],2),", ", round(test[[xu]],2),"]")
     }
     
     list(test = test, 
