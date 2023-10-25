@@ -75,11 +75,9 @@ optimal_test = function(X, #list of values for x
 
 
 
-
-
 pap_binary_data = function(etaJ, # prob of observing each component
                        minp = .2, size = .1, # null hypothesis and size constraint
-                       alpha = 1, beta = 1) { # parameters of Beta prior for theta
+                       a = 1, b = 1) { # parameters of Beta prior for theta
     n = length(etaJ)
     J = map(0:(2 ^ n - 1), ~ as.numeric(intToBits(.x))[1:n]) 
     # bernoulli distributions for the components of J, with different probabilities
@@ -89,7 +87,7 @@ pap_binary_data = function(etaJ, # prob of observing each component
     # bernoulli distributions for X under the null
     P0_X = map_dbl(X, ~ prod(.x * minp + (1 - .x) * (1 - minp)))
     # beta-binomial distribution for sum(x), for beta prior over theta
-    P_X = map_dbl(X, ~ beta(sum(.x) + alpha, n - sum(.x) + beta) / beta(alpha, beta))
+    P_X = map_dbl(X, ~ beta(sum(.x) + a, n - sum(.x) + b) / beta(a, b))
 
     solution = optimal_test(X, P_X, P_J, P0_X, size)
 
@@ -152,12 +150,20 @@ pap_normal_data = function(etaJ,
     X_upper = do.call(rbind, 
                        X) |>  
         as_tibble(.name_repair = "unique")
-    names(X_upper) = paste0("X_upper", 1:n)
+    names(X_upper) = paste0("X", 1:n, "_u")
     X_lower = do.call(rbind, 
                       map(X_steps, ~ X_q_fun(.x-1))) |>  
         as_tibble(.name_repair = "unique")
-    names(X_lower) = paste0("X_lower", 1:n)
-    list(test = bind_cols(X_upper, X_lower) |> mutate(t = solution$t),
+    names(X_lower) = paste0("X", 1:n, "_l")
+    
+    namestmp = expand.grid(c("_l", "_u"), paste0("X", 1:n)) # for arranging columns
+    namestmp = paste0(namestmp$Var2, namestmp$Var1)
+    test = bind_cols(X_upper, X_lower) |> 
+        select(namestmp) |>  # arrange columns
+        mutate(t = solution$t)  |> 
+        arrange(round(t,3), across(paste0("X", 1:n, "_l"))) # sort
+    
+    list(test = test, 
          expected_power = solution$expected_power)
 }
 
@@ -165,11 +171,11 @@ pap_normal_data = function(etaJ,
 # Helper functions to check whether arguments are valid
 check_inputs_binary_data = function(etaJ, # prob of observing each component
                                     minp = .2, size = .1, # null hypothesis and size constraint
-                                    alpha = 1, beta = 1) { # parameters of Beta prior for theta
+                                    a = 1, b = 1) { # parameters of Beta prior for theta
   !any(is.na(etaJ)) &
         (size >= 0) &
-        (alpha > 0) &
-        (beta > 0) &
+        (a > 0) &
+        (b > 0) &
         (minp >= 0)  &
         (minp <= 1) 
 }
@@ -197,8 +203,8 @@ plot_2d_normal = function(output_normal){
     bound = 3 # range of coordinates
     
     output_normal |> 
-        ggplot(aes(xmin = X_lower1, xmax = X_upper1, 
-                   ymin = X_lower2, ymax = X_upper2)) +
+        ggplot(aes(xmin = X1_l, xmax = X1_u, 
+                   ymin = X2_l, ymax = X2_u)) +
         xlim(-bound, bound) + ylim(-bound, bound) +
         coord_fixed() +
         geom_rect(aes(fill = factor(round(t, digits = 2)))) +

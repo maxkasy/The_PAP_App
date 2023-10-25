@@ -1,27 +1,31 @@
 Column {data-width=300}
 -------------------------------------
+
+<font style="font-size: 25px">Parameters </font> 
     
+###
     
-### Parameters
-    
-Separate probabilities by comma!
+Separate probabilities by comma.
 ```{r}
 textInput("etaJ_binary", "Probability of observing components", value = "0.9,0.5", width = NULL,
           placeholder = NULL)
 ```
 
 
-Prior parameters of beta prior:
-    ```{r}
-numericInput('alpha', 'alpha', 1, step = .1, min = 0)
-numericInput('beta', 'beta', 1, step = .1, min = 0)
+Parameters of Beta prior:
+```{r}
+fluidRow(
+    column(width = 6, numericInput('alpha', 'alpha', 1, step = .1, min = 0)),
+    column(width = 6, numericInput('beta', 'beta', 1, step = .1, min = 0))
+)
 ```
 
 Test:
     ```{r}
-numericInput('minp_binary', 'Null hypothesis', .2, step = .1, min = 0, max = 1)
-numericInput('size_binary', 'Size of test', .1, step = .01, min = 0, max = 1)
-checkboxInput("simple_pap_binary", "Use a simple cutoff rule", FALSE)
+fluidRow(
+    column(width = 6, numericInput('minp_binary', 'Null hypothesis', .1, step = .1, min = 0, max = 1)),
+    column(width = 6, numericInput('size_binary', 'Size of test', .05, step = .01, min = 0, max = 1))
+)
 ```
 
 
@@ -34,12 +38,12 @@ actionButton('run_binary', 'Run')
 
 
 
-
-Column {data-width=400}
+Column {data-width=350}
 -------------------------------------
     
+<font style="font-size: 25px">The optimal PAP</font>     
     
-    ```{r}
+```{r}
 #object to store calculation results
 v_binary = reactiveValues()
 
@@ -48,71 +52,95 @@ observeEvent(input$run_binary, {
     
     # Check if input values are valid numerical vector
     v_binary$valid_inputs = check_inputs_binary_data(etaJ = v_binary$etaJ,
-                           minp = input$minp_binary, size = input$size_binary,
-                           alpha = input$alpha, beta = input$beta)
+                                                     minp = input$minp_binary, size = input$size_binary,
+                                                     a = input$alpha, b = input$beta)
     
     if (v_binary$valid_inputs){ 
-        if (input$simple_pap_binary == F){ # Use the optimal test
-            v_binary$output = pap_binary_data(etaJ = v_binary$etaJ,
-                               minp = input$minp_binary, size = input$size_binary,
-                               alpha = input$alpha, beta = input$beta) 
-           v_binary$output$test = v_binary$output$test |>
-                filter(t>0) |>
-                arrange(t)
-        } else { # Use a simple test
-            v_binary$output = pap_binary_data_simple(etaJ = v_binary$etaJ,
-                               minp = input$minp_binary, size = input$size_binary,
-                               alpha = input$alpha, beta = input$beta)
-        }
+        # The optimal test
+        v_binary$output_optimal = pap_binary_data(etaJ = v_binary$etaJ,
+                                                  minp = input$minp_binary, size = input$size_binary,
+                                                  a = input$alpha, b = input$beta) 
+        v_binary$output_optimal$test = v_binary$output_optimal$test |>
+            filter(t>0) |>
+            arrange(t)
+        
+        # The simple test
+        v_binary$output_simple = pap_binary_data_simple(etaJ = v_binary$etaJ,
+                                                        minp = input$minp_binary, size = input$size_binary,
+                                                        a = input$alpha, b = input$beta)
+        
     } else {
-        v_binary$output$test = "Invalid input values"
-        v_binary$output$expected_power = NaN
+        v_binary$output_optimal$test = "Invalid input values"
+        v_binary$output_optimal$expected_power = NaN
+        v_binary$output_simple$test = NaN
+        v_binary$output_simple$expected_power = NaN
     }
 })
 ```
 
 
+### Expected power {data-height=150}
 
-### The optimal PAP {data-height=700}
+```{r}
+renderValueBox({
+  valueBox(round(mean(v_binary$output_optimal$expected_power), digits=2))
+})
+```
+
+### {data-height=750}
 ```{r}
 renderTable({
-    req(v_binary$output)
-    v_binary$output$test
+    req(v_binary$output_optimal)
+    v_binary$output_optimal$test
 },
 digits = 2
 )
 ```
 
-### Notes {data-height=200}
 
-For optimal PAPs, each row of this table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
-Values of X that are not displayed have t = 0 (no rejection).
 
-For simple cutoff rules, the table shows the components of X used by the test, the cutoff in terms of the sum of these components, and the rejection probability when the sum is exactly at the cutoff.
 
-### Save optimal PAP as *csv* file. {data-height=100}
+### {data-height=75}
 
 ```{r}
-downloadLink("download_binary", "Download PAP", style = "font-size: 20px;")
+downloadLink("download_binary", "Download the optimal PAP (csv file)", style = "font-size: 20px;")
 output$download_binary = 
     downloadHandler(
     filename = paste(Sys.Date(), "_binary_pap.csv", sep = ""),
     content = function(file) {
-        write_csv(v_binary$output, file)
+        write_csv(v_binary$output_optimal$test, file)
     }
 )
 ```
 
-Column {data-width=300}
+Column {data-width=350}
 -------------------------------------
 
-### Expected power
+<font style="font-size: 25px">The optimal simple PAP</font> 
+
+### Expected power {data-height=150}
 
 ```{r}
 renderValueBox({
-  valueBox(round(mean(v_binary$output$expected_power), digits=2))
+  valueBox(round(mean(v_binary$output_simple$expected_power), digits=2))
 })
+```
+
+### {data-height=400}
+```{r}
+renderTable({
+    req(v_binary$output_simple)
+    v_binary$output_simple$test
+},
+digits = 2
+)
 ```
 
 
 
+### Notes {data-height=450}
+
+For optimal PAPs, each row of the table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
+Values of X that are not displayed have t = 0 (no rejection).
+
+For simple cutoff rules, the table shows the components of X used by the test, the cutoff in terms of the sum of these components, and the rejection probability when the sum is exactly at the cutoff.

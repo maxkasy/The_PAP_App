@@ -43,20 +43,24 @@ binary_output = function(input_binary, v_binary, title){
     
     cat('The probability of observing each of the components is (', paste0(input_binary$etaJ, collapse =", "), ').\\\\\n\n', sep = "")
     
-    cat('Power for the optimal test is ', round(v_binary$optimal_output$expected_power, 3), '.\n\n',
-        'Power for the optimal simple test is ', round(v_binary$simple_output$expected_power, 3), '.\n\n', sep = "")
     
-    cat('The optimal test rejects for the following realizations of the data:\n\n',
-        "\\begin{center}", sep = "")
-    kable(v_binary$optimal_output$test, digits = 2,
-            row.names = F, format = "latex", booktabs = TRUE) |> 
-        cat("\n\\end{center}\n\n")
     
-    cat('The optimal simple test is defined by the following parameters:\n\n',
-        "\\begin{center}")
-    kable(v_binary$simple_output$test, digits =2,
-          row.names = F, format = "latex", booktabs = TRUE) |> 
-        cat("\\end{center}\n\n")
+    cat('\\begin{tabular}{c|c}\n',
+        '\\textsc{Optimal test} &\\textsc{Optimal simple test}\\\\ \n',
+        '\\toprule\n \\addlinespace\n',
+        kable(v_binary$optimal_output$test, digits = 2,
+              row.names = F, format = "latex", booktabs = TRUE),
+        '&',
+        kable(v_binary$simple_output$test, digits =2,
+              row.names = F, format = "latex", booktabs = TRUE),
+        '\\\\ \n  \\addlinespace\n',
+        'Expected power: ',
+        round(v_binary$optimal_output$expected_power, 3),
+        '& Expected power: ',
+        round(v_binary$simple_output$expected_power, 3),
+        '\\end{tabular}', sep =""
+    )
+    
 }
 
 normal_output = function(input_normal, v_normal, title){
@@ -75,20 +79,21 @@ normal_output = function(input_normal, v_normal, title){
         '), and a variance of $\\bigl(\\begin{smallmatrix}', paste0(input_normal$Sigma[1,], collapse = " & "), '\\\\',
          paste0(input_normal$Sigma[2,], collapse = " & "), "\\end{smallmatrix}\\bigr)$.\\\\\n\n", sep = "")
     
-    cat('Power for the optimal test is ', round(v_normal$optimal_output$expected_power, 3), '.\n\n',
-        'Power for the optimal simple test is ', round(v_normal$simple_output$expected_power, 3), '.\n\n', sep = "")
-    
-    cat('The optimal test is shown in the following figure:\n\n',
-        '\\includegraphics[width=.6\\textwidth,center]{', figure_file, '}\n\n')
-    
-    
-    cat('The optimal simple test is defined by the following parameters:\n\n',
-        "\\begin{center}", sep = "")
-    kable(v_normal$simple_output$test, digits =2,
-            row.names = F, format = "latex", booktabs = TRUE) |> 
-        cat("\n\\end{center}\n\n")
-    
-    
+    cat('\\begin{tabular}{c|c}\n',
+    '\\textsc{Optimal test} &\\textsc{Optimal simple test}\\\\ \n',
+    '\\toprule\n',
+    '\\raisebox{-.5\\totalheight}{\\includegraphics[width=.5\\textwidth]{',
+        figure_file,
+    '}} &',
+        kable(v_normal$simple_output$test, digits =2,
+              row.names = F, format = "latex", booktabs = TRUE),
+    '\\\\ \n',
+    'Expected power: ',
+        round(v_normal$optimal_output$expected_power, 3),
+    '& Expected power: ',
+        round(v_normal$simple_output$expected_power, 3),
+    '\\end{tabular}', sep =""
+    )
 
 }
 
@@ -125,7 +130,7 @@ normal_output(input_normal,
               "Example 2")
 
 input_normal = list(
-    etaJ = c(.8,.8),
+    etaJ = c(.9,.9),
     mu0 = c(0,0),
     Sigma0 = matrix(c(1,0,0,1), nrow = 2),
     mu = c(1,1),
@@ -135,6 +140,19 @@ input_normal = list(
 normal_output(input_normal, 
               normal_example(input_normal),
               "Example 3")
+
+
+input_normal = list(
+    etaJ = c(.9,.9),
+    mu0 = c(0,0),
+    Sigma0 = matrix(c(1,0,0,1), nrow = 2),
+    mu = c(2,.5),
+    Sigma = matrix(c(2,1,1,2), nrow = 2),
+    size_normal = .05
+) 
+normal_output(input_normal, 
+              normal_example(input_normal),
+              "Example 4")
 
 sink()
 
@@ -155,7 +173,7 @@ input_binary = list(
 )
 binary_output(input_binary, 
               binary_example(input_binary),
-              "Example 4")
+              "Example 5")
 
 input_binary = list(
     etaJ = c(.9,.5, .1),
@@ -166,7 +184,7 @@ input_binary = list(
 )
 binary_output(input_binary, 
               binary_example(input_binary),
-              "Example 5")
+              "Example 6")
 
 
 input_binary = list(
@@ -178,7 +196,7 @@ input_binary = list(
 )
 binary_output(input_binary, 
               binary_example(input_binary),
-              "Example 6")
+              "Example 7")
 
 sink()
 

@@ -49,7 +49,7 @@ pap_binary_data_simple = function(etaJ, # prob of observing each component
         # print(c(i, power, P, expected_power, kappa, z))
     }
     # browser()
-    list(test = tibble(Parameter = c("Components", "Cutoff for sum", "Rejection probability at the margin"),
+    list(test = tibble(Parameter = c("Components", "Cutoff for sum", "Rejection prob at the margin"),
                        Value = c(paste0(eta_sorted$ix[1:istar],collapse = ","), zstar, round(kappastar, digits = 2))),
          expected_power = optimal_power)
 }

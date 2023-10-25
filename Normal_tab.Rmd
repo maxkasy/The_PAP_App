@@ -1,33 +1,37 @@
 Column {data-width=300}
 -------------------------------------
 
-### Parameters
+<font style="font-size: 25px">Parameters</font> 
 
+###
 
-Separate entries by comma!
+Separate entries by comma.
 ```{r}
 textInput("etaJ_normal", "Probability of observing components", value = "0.9,0.5", width = NULL,
   placeholder = NULL)
 ```
 
 
-Prior parameters of normal prior:
+Parameters of Normal prior:
 ```{r}
-textInput("mu", "Prior mean vector", value = "1,1", width = NULL,
-  placeholder = NULL)
-textInput("Sigma", "Prior variance matrix", value = "2,1,1,2", width = NULL,
-  placeholder = NULL)
+fluidRow(
+    column(width = 5, textInput("mu", "Prior mean vector", value = "1,1", width = NULL,
+                                placeholder = NULL)),
+    column(width = 7, textInput("Sigma", "Prior variance matrix", value = "2,1,1,2", width = NULL,
+                                placeholder = NULL))
+)
 ```
 
 Test:
 ```{r}
-textInput("mu0", "Mean vector under the null", value = "0,0", width = NULL,
-  placeholder = NULL)
-textInput("Sigma0", "Variance matrix under the null", value = "1,0,0,1", width = NULL,
-  placeholder = NULL)
+fluidRow(
+    column(width = 5, textInput("mu0", "Null mean vector", value = "0,0", width = NULL,
+                                placeholder = NULL)),
+    column(width = 7, textInput("Sigma0", "Null variance matrix", value = "1,0,0,1", width = NULL,
+              placeholder = NULL))
+)
 
-numericInput('size_normal', 'Size of test', .1, step = .01, min = 0, max = 1)
-checkboxInput("simple_pap_normal", "Use a simple cutoff rule", FALSE)
+numericInput('size_normal', 'Size of test', .05, step = .01, min = 0, max = 1)
 ```
 
 
@@ -37,14 +41,16 @@ actionButton('run_normal', 'Run')
 
 
 
-Column {data-width=400}
+Column {data-width=350}
 -------------------------------------
 
-```{r}
-  #object to store calculation results
-  v_normal = reactiveValues()
+<font style="font-size: 25px">The optimal PAP</font> 
 
-  observeEvent(input$run_normal, {
+```{r}
+#object to store calculation results
+v_normal = reactiveValues()
+
+observeEvent(input$run_normal, {
     v_normal$etaJ = unlist(strsplit(input$etaJ_normal, ",")) |> as.numeric()
     v_normal$mu0 = unlist(strsplit(input$mu0, ",")) |> as.numeric()
     v_normal$n = length(v_normal$mu0)
@@ -57,99 +63,114 @@ Column {data-width=400}
     
     # Check if input values are valid numerical vector
     v_normal$valid_inputs = check_inputs_normal_data(etaJ = v_normal$etaJ, 
-                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
-                           mu = v_normal$mu, Sigma = v_normal$Sigma,
-                           size = input$size_normal)
-
+                                                     mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                                                     mu = v_normal$mu, Sigma = v_normal$Sigma,
+                                                     size = input$size_normal)
+    
     if (v_normal$valid_inputs){  
-        if (input$simple_pap_normal == F){ # Use the optimal test
-            v_normal$output = pap_normal_data(etaJ = v_normal$etaJ, 
-                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
-                           mu = v_normal$mu, Sigma = v_normal$Sigma,
-                           size = input$size_normal)
-            v_normal$output$test_display = v_normal$output$test |>
-                filter(t>0) |>
-                arrange(t)
-            v_normal$plot_test = (v_normal$n == 2) 
-        } else { # Use a simple test
-            v_normal$output = pap_normal_data_simple(etaJ = v_normal$etaJ, 
-                           mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
-                           mu = v_normal$mu, Sigma = v_normal$Sigma,
-                           size = input$size_normal)
-            v_normal$output$test_display = v_normal$output$test
-        }
+        # The optimal test
+        v_normal$output_optimal = pap_normal_data(etaJ = v_normal$etaJ, 
+                                                  mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                                                  mu = v_normal$mu, Sigma = v_normal$Sigma,
+                                                  size = input$size_normal)
+        v_normal$output_optimal$test_display = 
+            v_normal$output_optimal$test |>
+            filter(t>0)
+        v_normal$plot_test = (v_normal$n == 2) 
         
-        
+        # The simple test
+        v_normal$output_simple = pap_normal_data_simple(etaJ = v_normal$etaJ, 
+                                                        mu0 = v_normal$mu0, Sigma0 = v_normal$Sigma0,
+                                                        mu = v_normal$mu, Sigma = v_normal$Sigma,
+                                                        size = input$size_normal)
+        v_normal$output_simple$test_display = v_normal$output_simple$test
         
         
     } else {
-        v_normal$output$test = "Invalid input values"
-        v_normal$output$expected_power = NaN
+        v_normal$output_optimal$test = "Invalid input values"
+        v_normal$output_optimal$expected_power = NaN
+        v_normal$output_simple$test = NaN
+        v_normal$output_simple$expected_power = NaN
     }
-  })
+})
 ```
 
+### Expected power {data-height=150}
 
-### The optimal PAP {data-height=750}
+```{r}
+renderValueBox({
+  valueBox(round(mean(v_normal$output_optimal$expected_power), digits=2))
+})
+```
+
+### {data-height=400}
 ```{r}
 renderTable({
-    req(v_normal$output)
-    v_normal$output$test_display
+    req(v_normal$output_optimal)
+    v_normal$output_optimal$test_display
   },
   digits = 2
 )
 ```
 
-
-
-### Notes {data-height=150}
-
-For optimal PAPs, each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
-Values of X that are not displayed have t = 0 (no rejection).
-
-For simple cutoff rules, the table shows the components of X used by the test, and the cutoff in terms of the sum of these components.
-
-
-
-### Save optimal PAP as *csv* file. {data-height=100}
-
-```{r}
-downloadLink("download_normal", "Download PAP", style = "font-size: 20px;")
-output$download_normal = 
-    downloadHandler(
-    filename = paste(Sys.Date(), "_normal_pap.csv", sep = ""),
-    content = function(file) {
-      write_csv(v_normal$output, file)
-    }
-  )
-```
-
-Column {data-width=300}
--------------------------------------
-
-### Expected power for the optimal PAP 
-
-
-```{r}
-renderValueBox({
-  valueBox(round(mean(v_normal$output$expected_power), digits=2))
-})
-```
-
-
-
-### Plot for the 2d case
+### Plot for the 2d case {data-height=350}
 ```{r}
 bound = 4
 renderPlot({
-    req(v_normal$output)
+    req(v_normal$output_optimal)
     if (v_normal$plot_test){ 
-        v_normal$output$test |> 
+        v_normal$output_optimal$test |> 
             plot_2d_normal()
     }
   }
 )
 
 ```
+
+
+### {data-height=75}
+
+```{r}
+downloadLink("download_normal", "Download the optimal PAP (csv file)", style = "font-size: 20px;")
+output$download_normal = 
+    downloadHandler(
+    filename = paste(Sys.Date(), "_normal_pap.csv", sep = ""),
+    content = function(file) {
+      write_csv(v_normal$output_optimal$test, file)
+    }
+  )
+```
+
+Column {data-width=350}
+-------------------------------------
+
+<font style="font-size: 25px">The optimal simple PAP</font> 
+
+### Expected power {data-height=150}
+
+```{r}
+renderValueBox({
+  valueBox(round(mean(v_normal$output_simple$expected_power), digits=2))
+})
+```
+
+### {data-height=400}
+```{r}
+renderTable({
+    req(v_normal$output_simple)
+    v_normal$output_simple$test_display
+  },
+  digits = 2
+)
+```
+
+
+### Notes {data-height=450}
+
+For optimal PAPs, each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
+Values of X that are not displayed have t = 0 (no rejection).
+
+For simple cutoff rules, the table shows the components of X used by the test, and the cutoff in terms of the sum of these components.
+
 
 
