@@ -160,8 +160,14 @@ pap_normal_data = function(etaJ,
     namestmp = paste0(namestmp$Var2, namestmp$Var1)
     test = bind_cols(X_upper, X_lower) |> 
         select(namestmp) |>  # arrange columns
-        mutate(t = solution$t)  |> 
-        arrange(round(t,3), across(paste0("X", 1:n, "_l"))) # sort
+        mutate(t = round(solution$t, 4))  |> 
+        arrange(t, across(paste0("X", 1:n, "_l"))) # sort
+    for (i in 1:n){ # create string columns for intervals, for human readability
+        x = paste0("X",i)
+        xl = paste0("X",i, "_l")
+        xu = paste0("X",i, "_u")
+        test[[x]] = paste0("[",round(test[[xl]],2),",", round(test[[xu]],2),"]")
+    }
     
     list(test = test, 
          expected_power = solution$expected_power)

@@ -75,7 +75,8 @@ observeEvent(input$run_normal, {
                                                   size = input$size_normal)
         v_normal$output_optimal$test_display = 
             v_normal$output_optimal$test |>
-            filter(t>0)
+            filter(t>0) |> 
+            select(paste0("X", 1:v_normal$n), "t")
         v_normal$plot_test = (v_normal$n == 2) 
         
         # The simple test
@@ -95,7 +96,7 @@ observeEvent(input$run_normal, {
 })
 ```
 
-### Expected power {data-height=150}
+### Expected power {data-height=75}
 
 ```{r}
 renderValueBox({
@@ -113,7 +114,7 @@ renderTable({
 )
 ```
 
-### Plot for the 2d case {data-height=350}
+### Plot for the 2d case
 ```{r}
 bound = 4
 renderPlot({
@@ -146,7 +147,7 @@ Column {data-width=350}
 
 <font style="font-size: 25px">The optimal simple PAP</font> 
 
-### Expected power {data-height=150}
+### Expected power {data-height=75}
 
 ```{r}
 renderValueBox({
@@ -165,7 +166,7 @@ renderTable({
 ```
 
 
-### Notes {data-height=450}
+### Notes
 
 For optimal PAPs, each row of this table shows a possible combination of upper and lower values for X, and the corresponding rejection probability t of the optimal full data test.
 Values of X that are not displayed have t = 0 (no rejection).

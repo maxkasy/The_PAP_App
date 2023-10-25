@@ -79,7 +79,7 @@ observeEvent(input$run_binary, {
 ```
 
 
-### Expected power {data-height=150}
+### Expected power {data-height=75}
 
 ```{r}
 renderValueBox({
@@ -87,7 +87,7 @@ renderValueBox({
 })
 ```
 
-### {data-height=750}
+###
 ```{r}
 renderTable({
     req(v_binary$output_optimal)
@@ -118,7 +118,7 @@ Column {data-width=350}
 
 <font style="font-size: 25px">The optimal simple PAP</font> 
 
-### Expected power {data-height=150}
+### Expected power {data-height=75}
 
 ```{r}
 renderValueBox({
@@ -138,7 +138,7 @@ digits = 2
 
 
 
-### Notes {data-height=450}
+### Notes
 
 For optimal PAPs, each row of the table shows a possible combination of values for X, and the corresponding rejection probability t of the optimal full data test.
 Values of X that are not displayed have t = 0 (no rejection).
