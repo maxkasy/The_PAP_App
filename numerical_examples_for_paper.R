@@ -7,13 +7,13 @@ binary_example = function(input){
     v_binary = list()
     v_binary$optimal_output = pap_binary_data(etaJ = input$etaJ,
                                               minp = input$minp_binary, size = input$size_binary,
-                                              alpha = input$alpha, beta = input$beta) 
+                                              a = input$alpha, b = input$beta) 
     v_binary$optimal_output$test = v_binary$optimal_output$test |>
         filter(t>0) |>
         arrange(t)
     v_binary$simple_output = pap_binary_data_simple(etaJ = input$etaJ,
                                                     minp = input$minp_binary, size = input$size_binary,
-                                                    alpha = input$alpha, beta = input$beta)
+                                                    a = input$alpha, b = input$beta)
     v_binary
 }
 

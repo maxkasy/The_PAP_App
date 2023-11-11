@@ -5,7 +5,7 @@ library(tidyverse)
 
 pap_binary_data_simple = function(etaJ, # prob of observing each component
                                minp = .2, size = .1, # null hypothesis and size constraint
-                               alpha = 1, beta = 1) { # parameters of Beta prior for theta
+                               a = 1, b = 1) { # parameters of Beta prior for theta
     
     n = length(etaJ)
 
