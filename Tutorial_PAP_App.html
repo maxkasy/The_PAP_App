@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>optimal_implementable_tests</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Tutorial_PAP_App</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7475,7 +7475,26 @@ a.anchor-link {
 </style>
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<main><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=835a7434-3730-4edb-94d7-c5ee0eefd56b">
+<main>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6182d12b-bc14-4fd9-b946-cd5f8dd0c559">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="How-to-use-the-PAP-App">How to use the PAP App<a class="anchor-link" href="#How-to-use-the-PAP-App">¶</a></h1><p>Consider the following scenario:
+You are an empirical social scientist who is going to run a field experiment, in order to test some hypothesis.
+You want to <strong>do the right thing</strong>. This means that you will not p-hack your results, and you will pre-register your statistical analysis. This way, you will control size of your test under the null.
+At the same time you <em>would</em> like to <strong>maximize the probability of rejecting your null hypothesis</strong>. You believe there is an effect there, and you want to prove it to the world. What should you do? This tutorial will show how to use the PAP App to answer this question.
+For further details, please refer to our working paper <a href="https://maxkasy.github.io/home/files/papers/optimal_preanalysis_plans.pdf">Optimal Pre-Analysis Plans: Statistical Decisions Subject to Implementability</a>.</p>
+<p>The easiest way to use the app is to go to the interactive dashboard at <a href="https://maxkasy.shinyapps.io/The_PAP_App/">https://maxkasy.shinyapps.io/The_PAP_App/</a>.
+In this notebook, we will however instead use the Python script <code>PAP_App.py</code> to obtain the same results.
+This script can be downloaded from <a href="https://github.com/maxkasy/The_PAP_App">https://github.com/maxkasy/The_PAP_App</a>.
+The following loads the functions from the Python script, as well as the required packages (<code>numpy</code>, <code>pandas</code>, <code>scipy</code>, <code>itertools</code>, and <code>cvxpy</code>):</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16505197-c753-4767-aa10-9720bd07c6da">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7483,30 +7502,58 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">beta</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">mvn</span><span class="p">,</span> <span class="n">norm</span>
-<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="n">lil_matrix</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">run</span> <span class="n">PAP_App</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38408533-3f8a-4178-8193-e862f61ca2e0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1a662ea7-4cc8-4037-9dbb-0f2ed79a5edd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="General-functions-for-optimal-tests">General functions for optimal tests<a class="anchor-link" href="#General-functions-for-optimal-tests">¶</a></h1>
+<p>Next we need to specify the parameters of our problem, which will then determine the optimal PAP. These parameters pin down (1) the null hypothesis to be tested, (2) prior beliefs over the true parameter, and (3) prior beliefs over the availability of specific tests or estimates for the data that you will obtain.</p>
+<p>In the app, we have implemented two leading scenarios.
+The first scenario involves "data" in the form of binary decisions $X_1,X_2,\ldots$.
+Most commonly, these will correspond to the outcomes of component hypothesis tests. Our goal is then to implement a corresponding test of the joint null.
+The second scenario involves "data" in the form of normal point estimates (or t-statistics) $X_1,X_2,\ldots$.
+Our goal is again to implement a joint test based on these point estimates.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90b108a0-8cfc-4d63-a223-45004436ef19">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5048b833-36b2-4489-a709-a093aea202f9">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Binary-data">Binary data<a class="anchor-link" href="#Binary-data">¶</a></h2>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=06df35bf-81a7-4523-8754-c91b191d08f8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Suppose you plan to run an experiment at three different sites, for instance in three different villages.
+In the experiment you have a binary treatment, and a main outcome of interest.
+You will calculate a test for each village separately, reporting whether the treatment had a significant positive effect in this village. This gives three testing decisions $X_1$, $X_2$, and $X_3$.</p>
+<p>However, there is some chance that the experiment will not be implementable in a given village. That is, there is a chance that you will not be able to calculate $X_i$ for all of the $i$.
+Your prior probabilities for the experiments to be successfully implemented, for each of the villages, equal .9, .7, and .5, respectively. We collect these probabilities in the vector $\eta_J$ (<code>etaJ</code> in the code below).</p>
+<p>Under the null of no effect, the probability of rejecting the null in each of the villages is given by $\underline \theta$ (<code>minp</code> below), where $\underline \theta = .5$.</p>
+<p>Lastly, we need to make assumptions about your prior distribution for the rejection probability $\theta$ in each village. This will not turn out to matter in this example, but we shall assume a uniform prior for $\theta$, which is the same thing as a Beta-prior with parameters $\alpha = \beta = 1$.
+These parameter specifications are collected in the following Python dictonary:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=296694ee-d93a-483b-a22a-b552bf0a18e3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7514,64 +7561,29 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">optimal_test</span><span class="p">(</span><span class="n">test_args</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Find the optimal test, which maximizes expected power,</span>
-<span class="sd">    subject to the constraints of size control and implementability.</span>
-<span class="sd">    test_args is a list which needs to include matrices J and X </span>
-<span class="sd">    (with rows for possible realizations), and vectors P_J, P_X, and P_0X</span>
-<span class="sd">    (with the probabilities of these realizations)."""</span>
-    
-    <span class="n">J</span> <span class="o">=</span> <span class="n">test_args</span><span class="p">[</span><span class="s2">"J"</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="c1"># Covert to boolean for logical indexing</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">test_args</span><span class="p">[</span><span class="s2">"X"</span><span class="p">]</span>
-    <span class="n">N</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">dim</span> <span class="o">=</span> <span class="n">N</span> <span class="o">+</span> <span class="n">N</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">n</span>
-
-    <span class="c1"># Define objective and constraints; the latter as sparse matrices</span>
-    <span class="n">objective</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">),</span> 
-                                <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">test_args</span><span class="p">[</span><span class="s2">"P_X"</span><span class="p">],</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">)</span> <span class="o">*</span> 
-                                <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">test_args</span><span class="p">[</span><span class="s2">"P_J"</span><span class="p">],</span> <span class="n">N</span><span class="p">)))</span>
-    <span class="n">size_constraint</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">((</span><span class="n">test_args</span><span class="p">[</span><span class="s2">"P0_X"</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">))),</span> 
-                                 <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-    
-    <span class="c1"># Construct monotonicity constraints by iteration</span>
-    <span class="n">monotonicity_constraint</span> <span class="o">=</span> <span class="n">lil_matrix</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">),</span> <span class="n">dim</span><span class="p">))</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># row in constraint matrix    </span>
-    <span class="k">for</span> <span class="n">j_int</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">):</span>
-        <span class="n">j</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="n">j_int</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">x_int</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">xprime_int</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">x_int</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">X</span><span class="p">[</span><span class="n">xprime_int</span><span class="p">][</span><span class="n">j</span><span class="p">]):</span>
-                        <span class="c1"># add one constraint to the constraint matrix</span>
-                        <span class="n">monotonicity_constraint</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">xprime_int</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-                        <span class="n">monotonicity_constraint</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">N</span> <span class="o">+</span> <span class="n">x_int</span> <span class="o">+</span> <span class="n">N</span> <span class="o">*</span> <span class="n">j_int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                        <span class="n">r</span><span class="o">+=</span><span class="mi">1</span>
-    <span class="n">monotonicity_constraint</span> <span class="o">=</span> <span class="n">monotonicity_constraint</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()[:</span><span class="n">r</span><span class="p">]</span>
-    
-    <span class="c1"># Define objective and constraint for cvxpy</span>
-    <span class="n">tb</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
-    <span class="n">cp_objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective</span> <span class="o">@</span> <span class="n">tb</span><span class="p">)</span>
-    <span class="n">cp_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">size_constraint</span> <span class="o">@</span> <span class="n">tb</span> <span class="o">&lt;=</span> <span class="n">size</span><span class="p">,</span>
-                      <span class="n">tb</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tb</span> <span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span>
-                      <span class="n">monotonicity_constraint</span> <span class="o">@</span> <span class="n">tb</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span>
-    
-    <span class="n">cp_problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp_objective</span><span class="p">,</span> <span class="n">cp_constraints</span><span class="p">)</span>    
-    <span class="c1"># Solve the problem</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">cp_problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CLARABEL</span><span class="p">)</span>
-
-    <span class="c1"># Format output</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X</span><span class="p">,</span><span class="n">tb</span><span class="o">.</span><span class="n">value</span><span class="p">[:</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))))</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> 
-                  <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">"X</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"t"</span><span class="p">])</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">"tb"</span><span class="p">:</span> <span class="n">tb</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> 
-            <span class="s2">"power"</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span> 
-            <span class="s2">"t"</span><span class="p">:</span> <span class="n">t</span><span class="p">}</span>
-            <span class="c1"># "t": dict(zip(names, t))}</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">input_binary</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'etaJ'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.9</span><span class="p">,</span> <span class="mf">.7</span><span class="p">,</span> <span class="mf">.5</span><span class="p">]),</span>
+    <span class="s1">'minp'</span><span class="p">:</span> <span class="mf">.05</span><span class="p">,</span>
+    <span class="s1">'alpha'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">'beta'</span><span class="p">:</span> <span class="mi">1</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=faec919f-b103-49cb-8596-e4f6e82d2d1f">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=070f413e-4068-4e85-9c2d-6a987b914d31">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>It turns out these parameters are all that we need to calculate the optimal PAP. The function <code>pap_binary_data</code> takes the dictonary <code>input_binary</code>, and uses it to calculate the relevant distributions of data availability and test realizations under the null, as well as averaged over the prior distributions:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f46dce27-8a60-4431-bfff-50b5e05fea0b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7579,33 +7591,24 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">pap_binary_data</span><span class="p">(</span><span class="n">input_binary</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""From a  specification of null-hypothesis and prior,</span>
-<span class="sd">    prepare the test_args required for optimal_test,</span>
-<span class="sd">    for binary data X."""</span>
-    
-    <span class="n">etaJ</span> <span class="o">=</span> <span class="n">input_binary</span><span class="p">[</span><span class="s2">"etaJ"</span><span class="p">]</span>
-    <span class="n">minp</span> <span class="o">=</span> <span class="n">input_binary</span><span class="p">[</span><span class="s2">"minp"</span><span class="p">]</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">input_binary</span><span class="p">[</span><span class="s2">"alpha"</span><span class="p">]</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">input_binary</span><span class="p">[</span><span class="s2">"beta"</span><span class="p">]</span>    
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">etaJ</span><span class="p">)</span>
-
-    <span class="c1"># Construct matrices with binary entries in rows for all possible J and X vectors</span>
-    <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="n">n</span><span class="p">)))</span>
-    <span class="n">X</span> <span class="o">=</span><span class="n">J</span>
-
-    <span class="c1"># Distribution of J, and distribution of X under the null and averaged over the prior</span>
-    <span class="n">P_J</span>  <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">etaJ</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">etaJ</span><span class="p">))</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">J</span><span class="p">]</span>
-    <span class="n">P0_X</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">minp</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">minp</span><span class="p">))</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span>
-    <span class="n">P_X</span>  <span class="o">=</span> <span class="p">[</span><span class="n">beta</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="n">beta</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="p">{</span><span class="s2">"J"</span><span class="p">:</span> <span class="n">J</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span> <span class="s2">"P_J"</span><span class="p">:</span> <span class="n">P_J</span><span class="p">,</span> <span class="s2">"P0_X"</span><span class="p">:</span> <span class="n">P0_X</span><span class="p">,</span> <span class="s2">"P_X"</span><span class="p">:</span> <span class="n">P_X</span><span class="p">}</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">test_args_binary</span> <span class="o">=</span> <span class="n">pap_binary_data</span><span class="p">(</span><span class="n">input_binary</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cc009838-d13c-4d35-bcec-4e2be2854e51">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=de5bd2ea-ae12-4439-935d-104028b5be80">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>We can now calculate the optimal test, based on these distributions. This optimal test solves the linear programming problem described in our paper, maximizing expected power subject to size control and incentive compatibility. The Argument <code>size</code> refers to the desired size of the joint hypothesis test.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cf3c84c9-1b1b-4e3a-ab98-5d9e30ebe194">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7613,55 +7616,24 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">pap_normal_data</span><span class="p">(</span><span class="n">input_normal</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""From a  specification of null-hypothesis and prior,</span>
-<span class="sd">    prepare the test_args required for optimal_test,</span>
-<span class="sd">    for normal data X."""</span>
-    
-    <span class="n">etaJ</span> <span class="o">=</span> <span class="n">input_normal</span><span class="p">[</span><span class="s2">"etaJ"</span><span class="p">]</span> 
-    <span class="n">mu0</span> <span class="o">=</span> <span class="n">input_normal</span><span class="p">[</span><span class="s2">"mu0"</span><span class="p">]</span>
-    <span class="n">Sigma0</span> <span class="o">=</span> <span class="n">input_normal</span><span class="p">[</span><span class="s2">"Sigma0"</span><span class="p">]</span> 
-    <span class="n">mu</span> <span class="o">=</span> <span class="n">input_normal</span><span class="p">[</span><span class="s2">"mu"</span><span class="p">]</span>
-    <span class="n">Sigma</span> <span class="o">=</span> <span class="n">input_normal</span><span class="p">[</span><span class="s2">"Sigma"</span><span class="p">]</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">etaJ</span><span class="p">)</span>
-    
-    <span class="c1"># Construct matrix with binary entries in rows for all possible J vectors</span>
-    <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="n">n</span><span class="p">)))</span>
-    <span class="c1"># Distribution of J</span>
-    <span class="n">P_J</span>  <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">etaJ</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">etaJ</span><span class="p">))</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">J</span><span class="p">]</span>
-    
-    <span class="c1"># Vector of normal quantiles for discretization</span>
-    <span class="n">norm_step_vec</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1e-10</span><span class="p">,</span><span class="mf">.0125</span><span class="p">,</span> <span class="mf">.025</span><span class="p">,</span> <span class="mf">.05</span><span class="p">,</span> <span class="mf">.1</span><span class="p">,</span> <span class="mf">.2</span><span class="p">,</span> <span class="mf">.35</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.65</span><span class="p">,</span> <span class="mf">.8</span><span class="p">,</span> <span class="mf">.9</span><span class="p">,</span> <span class="mf">.95</span><span class="p">,</span> <span class="mf">.975</span><span class="p">,</span>  <span class="mf">.9875</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span> <span class="mf">1e-10</span><span class="p">])</span>
-        <span class="c1"># np.array([1e-10, .1, .5,   .9, 1- 1e-10]) # for debugging</span>
-    <span class="p">)</span>
-    <span class="n">X_component_quantiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mu0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Sigma0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">norm_step_vec</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
-    <span class="c1"># all index combinations for the different components of X</span>
-    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">norm_step_vec</span><span class="p">)),</span> <span class="n">repeat</span> <span class="o">=</span> <span class="n">n</span><span class="p">)))</span>
-    <span class="n">X_upper</span> <span class="o">=</span> <span class="n">X_component_quantiles</span><span class="p">[</span><span class="n">indices</span><span class="p">,</span>  <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-    <span class="n">X_lower</span> <span class="o">=</span> <span class="n">X_component_quantiles</span><span class="p">[</span><span class="n">indices</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-
-    <span class="n">P_X</span>  <span class="o">=</span> <span class="p">[</span><span class="n">mvn</span><span class="o">.</span><span class="n">mvnun</span><span class="p">(</span><span class="n">X_upper</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">X_lower</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>   <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_upper</span><span class="p">))]</span>
-    <span class="n">P0_X</span> <span class="o">=</span> <span class="p">[</span><span class="n">mvn</span><span class="o">.</span><span class="n">mvnun</span><span class="p">(</span><span class="n">X_upper</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">X_lower</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">mu0</span><span class="p">,</span> <span class="n">Sigma0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_upper</span><span class="p">))]</span>
-    
-    <span class="k">return</span> <span class="p">{</span><span class="s2">"J"</span><span class="p">:</span> <span class="n">J</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">:</span> <span class="n">X_upper</span><span class="p">,</span> <span class="s2">"X_lower"</span><span class="p">:</span> <span class="n">X_lower</span><span class="p">,</span> <span class="s2">"P_J"</span><span class="p">:</span> <span class="n">P_J</span><span class="p">,</span> <span class="s2">"P0_X"</span><span class="p">:</span> <span class="n">P0_X</span><span class="p">,</span> <span class="s2">"P_X"</span><span class="p">:</span> <span class="n">P_X</span><span class="p">}</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">solution_binary</span> <span class="o">=</span> <span class="n">optimal_test</span><span class="p">(</span><span class="n">test_args_binary</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mf">.05</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=99b0cf98-9552-44d4-8867-35a048c7e857">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=da9c32cd-a6a8-4649-8e3e-808c7dea87ac">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Numerical-examples">Numerical examples<a class="anchor-link" href="#Numerical-examples">¶</a></h1>
+<p>Let us look at the optimal pre-analysis plan that we have calculated:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=174f48b0-d628-4f9e-a067-2ef090659af4">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30f8a6bc-fe09-4200-a57f-4c68b6e38147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7669,31 +7641,8 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">input_binary</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'etaJ'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">.9</span><span class="p">,</span> <span class="mf">.7</span><span class="p">,</span> <span class="mf">.5</span><span class="p">]),</span>
-    <span class="s1">'minp'</span><span class="p">:</span> <span class="mf">.1</span><span class="p">,</span>
-    <span class="s1">'alpha'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">'beta'</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">}</span>
-
-<span class="n">test_args_binary</span> <span class="o">=</span> <span class="n">pap_binary_data</span><span class="p">(</span><span class="n">input_binary</span><span class="p">)</span>
-
-<span class="n">solution_binary</span> <span class="o">=</span> <span class="n">optimal_test</span><span class="p">(</span><span class="n">test_args_binary</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mf">.05</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=43027e9f-8804-4fa8-9992-0f45c5b723b6">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">solution_binary</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span>
-<span class="n">t</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"t"</span><span class="p">,</span> <span class="s2">"X1"</span><span class="p">,</span> <span class="s2">"X2"</span><span class="p">,</span> <span class="s2">"X3"</span><span class="p">])</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">t_bin</span> <span class="o">=</span> <span class="n">solution_binary</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span>
+<span class="n">t_bin</span><span class="p">[</span><span class="n">t_bin</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"t"</span><span class="p">,</span> <span class="s2">"X1"</span><span class="p">,</span> <span class="s2">"X2"</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -7704,7 +7653,7 @@ a.anchor-link {
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[6]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -7736,7 +7685,7 @@ a.anchor-link {
 <td>1.0</td>
 <td>0.0</td>
 <td>0.0</td>
-<td>0.272</td>
+<td>0.947</td>
 </tr>
 <tr>
 <th>3</th>
@@ -7773,27 +7722,82 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7658f5ff-128a-4dd5-af6a-ff2d9c39d2f0">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8c5565cc-b726-4027-8b03-2aec068b9767">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>To save this pre-analysis plan in a spreadsheet, run the following:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8abfcb1a-03da-4a50-b85a-294be359838b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Write the PAP to a file</span>
-<span class="n">solution_binary</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">"optimal_pap_binary.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">t_bin</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">"optimal_pap_binary.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f239209e-e419-4b47-9859-2d74bfbc7065">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=596cbe85-edc9-45e6-a164-38aceacc20c2">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="How-to-interpret-this-PAP">How to interpret this PAP<a class="anchor-link" href="#How-to-interpret-this-PAP">¶</a></h3><p>We now have a spreadsheet, as displayed in the table above, of rejection probabilities for different combinations of the $X$s. How do we use this spreadsheet?
+The key point to remember is that we need to make worst-case assumptions about any components which are not available in the data that we actually obtain, after pre-registering our PAP.
+For example, suppose you registered the above testing rule in a PAP, before seeing the data.
+Suppose further that, based on your data, you can calculate the test $X_1$, and the test $X_3$, but $X_2$ is not available for some reason. In this case we need to act as if $X_2$ equals 0.</p>
+<p>Suppose additionally that $X_1 = 1$ but $X_3 = 0$. Can we reject the null?
+Looking in the above table, we see that the row corresponding to $(1,0,0)$ has $t=1$, so we can indeed reject.
+Suppose alternatively that $X_1 = 0$ but $X_3 = 1$. Can we reject the null in this case?
+Looking in the above table, we see that the row corresponding to $(0,0,1)$ has $t=0$, so we cannot reject.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0094b5e6-4b2f-4bdd-b4b9-3b38e8d512c7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Normal-data">Normal data<a class="anchor-link" href="#Normal-data">¶</a></h2>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d93f3d35-6e4e-4a25-8268-0ebb08254f43">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The discussion above was based on binary data, motivated by the case where we calculate a joint testing decision based on multiple individual hypothesis tests.
+An alternative, which uses the data more efficiently, is to calculate a joint testing decision based on multiple individual point estimates.
+Motivated by standard asymptotic arguments, we assume that these point estimates are normally distributed.</p>
+<p>As before, <code>etaJ</code> refers to the probabilities that each of the components will be available.
+The parameters $\mu_0$ and $\Sigma_0$ (<code>mu0</code> and <code>Sigma0</code>) specify the mean vector and covariance matrix of $X$ under the null.
+The parameters $\mu$ and $\Sigma$ (<code>mu</code> and <code>Sigma</code>) specify the prior marginal distribution of $X$. In the present setting, this prior distribution is important for calculating the test with highest expected power.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=1541d9d0-e49b-44b1-828c-50c456e78e3b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">input_normal</span> <span class="o">=</span> <span class="p">{</span>
@@ -7803,8 +7807,32 @@ a.anchor-link {
     <span class="s1">'mu'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
     <span class="s1">'Sigma'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
 <span class="p">}</span>
-
-<span class="n">test_args_normal</span> <span class="o">=</span> <span class="n">pap_normal_data</span><span class="p">(</span><span class="n">input_normal</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a2b11984-ac28-44d0-a593-61d43e008a24">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The remainder of the calculation proceeds as before.
+To apply the proposed linear programming approach, we need to discretize the support of the vector $X$. This is done automatically by the function <code>pap_normal_data</code>.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cac220f9-49de-4b1b-ae25-53260487eade">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">test_args_normal</span> <span class="o">=</span> <span class="n">pap_normal_data</span><span class="p">(</span><span class="n">input_normal</span><span class="p">)</span>
 
 <span class="n">solution_normal</span> <span class="o">=</span> <span class="n">optimal_test</span><span class="p">(</span><span class="n">test_args_normal</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mf">.05</span><span class="p">)</span>
 </pre></div>
@@ -7812,23 +7840,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>/var/folders/zt/fhn9q39n5877t1c_97gc9dbw0000gn/T/ipykernel_3612/185188059.py:29: DeprecationWarning: Please use `mvnun` from the `scipy.stats` namespace, the `scipy.stats.mvn` namespace is deprecated.
-  P_X  = [mvn.mvnun(X_upper[r], X_lower[r], mu, Sigma)[0]   for r in range(len(X_upper))]
-/var/folders/zt/fhn9q39n5877t1c_97gc9dbw0000gn/T/ipykernel_3612/185188059.py:30: DeprecationWarning: Please use `mvnun` from the `scipy.stats` namespace, the `scipy.stats.mvn` namespace is deprecated.
-  P0_X = [mvn.mvnun(X_upper[r], X_lower[r], mu0, Sigma0)[0] for r in range(len(X_upper))]
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52f04742-8618-4505-8415-1c00389acf0a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=dc1fcb55-7ac0-4c24-bb9e-55046fb0eea0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7836,454 +7848,9 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">solution_normal</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span>
-<span class="n">t</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"t"</span><span class="p">,</span> <span class="s2">"X1"</span><span class="p">,</span> <span class="s2">"X2"</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th>X1</th>
-<th>X2</th>
-<th>t</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>154</th>
-<td>1.959964</td>
-<td>-2.241403</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>155</th>
-<td>1.959964</td>
-<td>-1.959964</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>156</th>
-<td>1.959964</td>
-<td>-1.644854</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>157</th>
-<td>1.959964</td>
-<td>-1.281552</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>158</th>
-<td>1.959964</td>
-<td>-0.841621</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>159</th>
-<td>1.959964</td>
-<td>-0.385320</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>160</th>
-<td>1.959964</td>
-<td>0.000000</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>161</th>
-<td>1.959964</td>
-<td>0.385320</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>162</th>
-<td>1.959964</td>
-<td>0.841621</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>163</th>
-<td>1.959964</td>
-<td>1.281552</td>
-<td>0.326</td>
-</tr>
-<tr>
-<th>0</th>
-<td>-2.241403</td>
-<td>-2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>13</th>
-<td>-2.241403</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>27</th>
-<td>-1.959964</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>41</th>
-<td>-1.644854</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>55</th>
-<td>-1.281552</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>69</th>
-<td>-0.841621</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>83</th>
-<td>-0.385320</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>97</th>
-<td>0.000000</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>111</th>
-<td>0.385320</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>125</th>
-<td>0.841621</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>138</th>
-<td>1.281552</td>
-<td>2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>139</th>
-<td>1.281552</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>151</th>
-<td>1.644854</td>
-<td>1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>152</th>
-<td>1.644854</td>
-<td>2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>153</th>
-<td>1.644854</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>164</th>
-<td>1.959964</td>
-<td>1.644854</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>165</th>
-<td>1.959964</td>
-<td>1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>166</th>
-<td>1.959964</td>
-<td>2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>167</th>
-<td>1.959964</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>168</th>
-<td>2.241403</td>
-<td>-2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>169</th>
-<td>2.241403</td>
-<td>-1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>170</th>
-<td>2.241403</td>
-<td>-1.644854</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>171</th>
-<td>2.241403</td>
-<td>-1.281552</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>172</th>
-<td>2.241403</td>
-<td>-0.841621</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>173</th>
-<td>2.241403</td>
-<td>-0.385320</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>174</th>
-<td>2.241403</td>
-<td>0.000000</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>175</th>
-<td>2.241403</td>
-<td>0.385320</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>176</th>
-<td>2.241403</td>
-<td>0.841621</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>177</th>
-<td>2.241403</td>
-<td>1.281552</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>178</th>
-<td>2.241403</td>
-<td>1.644854</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>179</th>
-<td>2.241403</td>
-<td>1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>180</th>
-<td>2.241403</td>
-<td>2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>181</th>
-<td>2.241403</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>182</th>
-<td>6.361341</td>
-<td>-2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>183</th>
-<td>6.361341</td>
-<td>-1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>184</th>
-<td>6.361341</td>
-<td>-1.644854</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>185</th>
-<td>6.361341</td>
-<td>-1.281552</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>186</th>
-<td>6.361341</td>
-<td>-0.841621</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>187</th>
-<td>6.361341</td>
-<td>-0.385320</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>188</th>
-<td>6.361341</td>
-<td>0.000000</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>189</th>
-<td>6.361341</td>
-<td>0.385320</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>190</th>
-<td>6.361341</td>
-<td>0.841621</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>191</th>
-<td>6.361341</td>
-<td>1.281552</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>192</th>
-<td>6.361341</td>
-<td>1.644854</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>193</th>
-<td>6.361341</td>
-<td>1.959964</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>194</th>
-<td>6.361341</td>
-<td>2.241403</td>
-<td>1.000</td>
-</tr>
-<tr>
-<th>195</th>
-<td>6.361341</td>
-<td>6.361341</td>
-<td>1.000</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6a435e0f-abe9-4d13-8b8f-0a4676060876">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Pivot solution for plotting</span>
-<span class="n">X1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">test_args_normal</span><span class="p">[</span><span class="s2">"X"</span><span class="p">][:,</span><span class="mi">0</span><span class="p">])</span>
-<span class="n">X2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">test_args_normal</span><span class="p">[</span><span class="s2">"X"</span><span class="p">][:,</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">X2</span><span class="p">)))</span>
-<span class="c1"># Fill the matrix with t values</span>
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">solution_normal</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]):</span>
-    <span class="n">X1_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">X1</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">X2_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">X2</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">t</span><span class="p">[</span><span class="n">X1_index</span><span class="p">,</span> <span class="n">X2_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7ea3a5e6-f99c-4343-9309-c104f470b0e5">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-<span class="c1"># Create a heatmap</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">'viridis'</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedImage jp-OutputArea-output" tabindex="0">
-<img alt="No description has been provided for this image" class="" src="data:image/png;base64,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6NGj9Y6JejD1JINGom/fvsa4ceMqX3u9XqNt27ZGTk6O7bElVXmilN2OHDliSDLef//9Bo3bsmVL47e//a2tMU6cOGFcccUVxoYNG4yBAwcaEydOtCVOdna2kZSUZEvf5zNt2jTj+uuvb9CYPzZx4kTj8ssvN3w+ny3933777cbo0aP9jv385z83RowYYUu8U6dOGeHh4cbatWv9jvfq1cuYMWOG5fEC/637fD4jPj7emD9/fuWxb7/91nC73cbvf/97y+P9WHFxsSHJ2LZt2wXHqWvMcwoKCgxJxpdfftkg8c49wGjjxo0XHA91F3IzA2fOnFFhYaHS0tIqj4WFhSktLU35+flBHJl9ysrKJEmtWrVqkHher1crV65URUWF6S0tzRo3bpxuv/12v/897bJnzx61bdtWXbp00YgRI3TgwAFb461Zs0a9e/fW0KFD1aZNG1133XVasmSJrTHPOXPmjN544w2NHj1aLpfLlhj9+vVTXl6edu/+4bnyn3zyibZs2aJbb73Vlnjff/+9vF6vIiMj/Y43a9bM9lkeSSouLlZJSYnf/1djYmKUkpJy0f7tkX74++NyudSiRQvbY505c0aLFy9WTEyMkpKSbI+Hfwm57YiPHTsmr9eruLg4v+NxcXHauXNnkEZlH5/Pp0mTJql///7q3r27rbE+++wzpaam6vTp07rkkkv09ttv6+qrr7Yt3sqVK1VUVGRpzfd8UlJStGzZMl111VU6fPiwZs2apQEDBujzzz9X8+bNbYm5b98+LVq0SJmZmXr00Uf18ccf67/+678UERGhkSNH2hLznHfeeUfffvutHnzwQdtiTJ8+XeXl5UpMTFR4eLi8Xq/mzJmjESNG2BKvefPmSk1N1ezZs9WtWzfFxcXp97//vfLz89W1a1dbYv5YSUmJJFX7t+fcuYvN6dOnNW3aNN17772Kjo62Lc7atWs1fPhwnTp1SgkJCdqwYYNiY2Nti4eqQi4ZcJpx48bp888/b5BfPldddZW2b9+usrIyvfXWWxo5cqTef/99WxKCr776ShMnTtSGDRuq/NKzw49/rV577bVKSUlRx44d9eabb+oXv/iFLTF9Pp969+6tuXPnSpKuu+46ff7553rllVdsTwZeffVV3XrrrWrbtq1tMd5880397ne/04oVK3TNNddo+/btmjRpktq2bWvb53v99dc1evRotWvXTuHh4erVq5fuvfdeFRYW2hLPyc6ePat77rlHhmFo0aJFtsa68cYbtX37dh07dkxLlizRPffco48++kht2rSxNS7+JeTKBPV5xGOoGj9+vNauXatNmzbpsssusz1eRESEunbtquTkZOXk5CgpKUkvvviiLbEKCwt15MgR9erVS02aNFGTJk30/vvv66WXXlKTJk3k9XptiXtOixYtdOWVV2rv3r22xUhISKiSSHXr1s328sSXX36pjRs36qGHHrI1ztSpUzV9+nQNHz5cPXr00AMPPKDJkydXPkDFDpdffrnef/99nTx5Ul999ZUKCgp09uxZdenSxbaY55z7++KEvz3nEoEvv/xSGzZssHVWQJKioqLUtWtX/fSnP9Wrr76qJk2a6NVXX7U1JvyFXDJQn0c8hhrDMDR+/Hi9/fbb+vOf/6zOnTsHZRw+n08ej8eWvm+++WZ99tln2r59e2Xr3bu3RowYoe3btys8PNyWuOecPHlS//jHP5SQkGBbjP79+1e5JXT37t3q2LGjbTElaenSpWrTpo1uv/12W+OcOnVKYWH+f0LCw8Pl8/lsjSv98OWRkJCgb775RuvXr9edd95pe8zOnTsrPj7e729PeXm5Pvroo4vmb4/0r0Rgz5492rhxo1q3bt3gY7Dzbw+qF5Jlgtoe8Wi1kydP+v2CLC4u1vbt29WqVSt16NDB8njjxo3TihUr9H//939q3rx5ZT0yJiZGzZo1szyeJGVlZenWW29Vhw4ddOLECa1YsUKbN2/W+vXrbYnXvHnzKmsgoqKi1Lp1a1vWRkyZMkVDhgxRx44ddejQIWVnZys8PFz33nuv5bHOmTx5svr166e5c+fqnnvuUUFBgRYvXmz60aJm+Hw+LV26VCNHjlSTJvb+8x4yZIjmzJmjDh066JprrtG2bdv03HPPafTo0bbFXL9+vQzD0FVXXaW9e/dq6tSpSkxMtOzffm3/1idNmqSnnnpKV1xxhTp37qyZM2eqbdu2Sk9PtyXe8ePHdeDAgcr7/M8ll/Hx8fWejagpZkJCgu6++24VFRVp7dq18nq9lX9/WrVqpYiICEvjtW7dWnPmzNEdd9yhhIQEHTt2TAsXLtTBgwdtuyUW5xHkuxnq7Te/+Y3RoUMHIyIiwujbt6/x4Ycf2hZr06ZNhqQqbeTIkbbEqy6WJGPp0qW2xDMMwxg9erTRsWNHIyIiwrj00kuNm2++2fjTn/5kW7zq2Hlr4bBhw4yEhAQjIiLCaNeunTFs2DBj7969tsT6sT/+8Y9G9+7dDbfbbSQmJhqLFy+2Nd769esNScauXbtsjWMYhlFeXm5MnDjR6NChgxEZGWl06dLFmDFjhuHxeGyLuWrVKqNLly5GRESEER8fb4wbN8749ttvLeu/tn/rPp/PmDlzphEXF2e43W7j5ptvvqD/1rXFW7p0abXns7OzbYl57hbG6tqmTZssj/fdd98Zd911l9G2bVsjIiLCSEhIMO644w6joKCg3p8P9cMjjAEAcLiQWzMAAACsRTIAAIDDkQwAAOBwJAMAADgcyQAAAA5HMgAAgMORDAAA4HAkAwAAOBzJAAAADkcyAACAw5EMAADgcP8PSyic7gELZuMAAAAASUVORK5CYII="/>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38c35f68-fe25-4dd0-aa36-e150fcaa50fd">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span> 
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">t_norm</span> <span class="o">=</span> <span class="n">solution_normal</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span>
+<span class="c1"># t_norm[t_norm["t"]&gt;0].sort_values(by = ["t", "X1", "X2"])</span>
+<span class="n">t_norm</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">"optimal_pap_normal.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
