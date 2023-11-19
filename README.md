@@ -33,7 +33,7 @@ You will calculate a test for each village separately, reporting whether the tre
 However, there is some chance that the experiment will not be implementable in a given village. That is, there is a chance that you will not be able to calculate $X_i$ for all of the $i$.
 Your prior probabilities for the experiments to be successfully implemented, for each of the villages, equal .9, .7, and .5, respectively. We collect these probabilities in the vector $\eta_J$ (`etaJ` in the code below).
 
-Under the null of no effect, the probability of rejecting the null in each of the villages is given by $\underline \theta$ (`minp` below), where $\underline \theta = .5$.
+Under the null of no effect, the probability of rejecting the null in each of the villages is given by $\underline \theta$ (`minp` below), where $\underline \theta = .05$.
 
 Lastly, we need to make assumptions about your prior distribution for the rejection probability $\theta$ in each village. This will not turn out to matter in this example, but we shall assume a uniform prior for $\theta$, which is the same thing as a Beta-prior with parameters $\alpha = \beta = 1$.
 These parameter specifications are collected in the following Python dictonary:
@@ -74,19 +74,6 @@ t_bin[t_bin["t"]>0].sort_values(by = ["t", "X1", "X2"])
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
