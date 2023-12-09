@@ -25,14 +25,14 @@ app.layout = html.Div([
             dbc.Col(html.Label('Prob of observing')),
             dbc.Col(dcc.Input(id='input-etaJ-binary', type='text', placeholder="Enter etaJ values (comma separated)", value=".9,.7,.5")),
             dbc.Col(html.Label('Null hypothesis')),
-            dbc.Col(dcc.Input(id='input-minp', type='number', placeholder="Enter minp value", value=".05"))
+            dbc.Col(dcc.Input(id='input-minp', type='number', placeholder="Enter minp value", value=".05", step="0.05"))
         ], className='mb-3'),
         dbc.Row(html.Label('Parameters of Beta prior:')),
         dbc.Row([
             dbc.Col(html.Label('alpha:')),
-            dbc.Col(dcc.Input(id='input-alpha', type='number', placeholder="Enter alpha value", value="1")),
+            dbc.Col(dcc.Input(id='input-alpha', type='number', placeholder="Enter alpha value", value="1", step="0.1")),
             dbc.Col(html.Label('beta:')),
-            dbc.Col(dcc.Input(id='input-beta', type='number', placeholder="Enter beta value", value="1"))
+            dbc.Col(dcc.Input(id='input-beta', type='number', placeholder="Enter beta value", value="1", step="0.1"))
         ], className='mb-3'),
     ], id='input-fields-binary', style={'display': 'none'}),
     html.Div([
