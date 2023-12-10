@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 t = None # Initializing variable where PAP will be stored
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+server = app.server
 
 app.layout = html.Div([
     html.H1('The PAP App', className='text-center mb-4'),
@@ -27,11 +28,11 @@ app.layout = html.Div([
             dbc.Col(html.Label('Null hypothesis')),
             dbc.Col(dcc.Input(id='input-minp', type='number', placeholder="Enter minp value", value=".05", step="0.05"))
         ], className='mb-3'),
-        dbc.Row(html.Label('Parameters of Beta prior:')),
+        dbc.Row(html.Label('Parameters of Beta prior')),
         dbc.Row([
-            dbc.Col(html.Label('alpha:')),
+            dbc.Col(html.Label('alpha')),
             dbc.Col(dcc.Input(id='input-alpha', type='number', placeholder="Enter alpha value", value="1", step="0.1")),
-            dbc.Col(html.Label('beta:')),
+            dbc.Col(html.Label('beta')),
             dbc.Col(dcc.Input(id='input-beta', type='number', placeholder="Enter beta value", value="1", step="0.1"))
         ], className='mb-3'),
     ], id='input-fields-binary', style={'display': 'none'}),
@@ -43,15 +44,15 @@ app.layout = html.Div([
             dbc.Col()
         ], className='mb-3'),
         dbc.Row([
-            dbc.Col(html.Label('Prior mean vector')),
+            dbc.Col(html.Label('Null mean vector')),
             dbc.Col(dcc.Input(id='input-mu0', type='text', placeholder="Enter mu0 values (comma separated)", value="0,0")),
-            dbc.Col(html.Label('Prior variance matrix')),
+            dbc.Col(html.Label('Null variance matrix')),
             dbc.Col(dcc.Input(id='input-Sigma0', type='text', placeholder="Enter Sigma0 values (matrix)", value="[[1, 0], [0, 1]]"))
         ], className='mb-3'),
         dbc.Row([
-            dbc.Col(html.Label('Null mean vector')),
+            dbc.Col(html.Label('Prior mean vector')),
             dbc.Col(dcc.Input(id='input-mu', type='text', placeholder="Enter mu values (comma separated)", value="1,1")),
-            dbc.Col(html.Label('Null variance matrix')),
+            dbc.Col(html.Label('Prior variance matrix')),
             dbc.Col(dcc.Input(id='input-Sigma', type='text', placeholder="Enter Sigma values (matrix)", value="[[2, 1], [1, 2]]"))
         ], className='mb-3'),
     ], id='input-fields-normal', style={'display': 'none'}),
