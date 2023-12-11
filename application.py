@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 import dash
 from dash import dcc, html, dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-t = None # Initializing variable where PAP will be stored
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 server = app.server
@@ -61,7 +60,9 @@ app.layout = html.Div([
     dcc.Download(id="download-data"),
     html.Hr(),
     html.Div(id='output-binary', style={'display': 'none'}),
-    html.Div(id='output-normal', style={'display': 'none'})
+    html.Div(id='output-normal', style={'display': 'none'}),
+    dcc.Store(id='store-t-binary'),
+    dcc.Store(id='store-t-normal')
 ], style={'margin': '10%'})
 
 @app.callback(
@@ -92,13 +93,14 @@ def toggle_output(data_type):
 
 
 @app.callback(
-    Output('output-binary', 'children'),
+    [Output('output-binary', 'children'),
+     Output('store-t-binary', 'data')],
     [Input('run-button', 'n_clicks')],
-    [dash.dependencies.State('data-type', 'value'),
-     dash.dependencies.State('input-etaJ-binary', 'value'),
-     dash.dependencies.State('input-minp', 'value'),
-     dash.dependencies.State('input-alpha', 'value'),
-     dash.dependencies.State('input-beta', 'value')]
+    [State('data-type', 'value'),
+     State('input-etaJ-binary', 'value'),
+     State('input-minp', 'value'),
+     State('input-alpha', 'value'),
+     State('input-beta', 'value')]
 )
 def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, input_alpha, input_beta):
     if n_clicks is None or data_type != 'binary':
@@ -112,25 +114,27 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
         }
         test_args = PAP_App.pap_binary_data(input_binary)
         output_binary = PAP_App.optimal_test(test_args, .05)
-        global t
+
         t = output_binary["t"].round(2)
-        t_filtered = t.query('t > 0').sort_values('t')
+        t_filtered = t.query('t > 0').sort_values('t')        
+        table = dash_table.DataTable(
+            data=t_filtered.to_dict('records'),
+            columns=[{'name': i, 'id': i} for i in t_filtered.columns]
+        )
         
-        return dash_table.DataTable(
-                data=t_filtered.to_dict('records'),
-                columns=[{'name': i, 'id': i} for i in t_filtered.columns]
-            )
+        return table, t.to_csv()
 
 
 @app.callback(
-    Output('output-normal', 'children'),
+    [Output('output-normal', 'children'),
+     Output('store-t-normal', 'data')],
     [Input('run-button', 'n_clicks')],
-    [dash.dependencies.State('data-type', 'value'),
-     dash.dependencies.State('input-etaJ-normal', 'value'),
-     dash.dependencies.State('input-mu0', 'value'),
-     dash.dependencies.State('input-Sigma0', 'value'),
-     dash.dependencies.State('input-mu', 'value'),
-     dash.dependencies.State('input-Sigma', 'value')]
+    [State('data-type', 'value'),
+     State('input-etaJ-normal', 'value'),
+     State('input-mu0', 'value'),
+     State('input-Sigma0', 'value'),
+     State('input-mu', 'value'),
+     State('input-Sigma', 'value')]
 )
 def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, input_Sigma0, input_mu, input_Sigma):
     if n_clicks is None or data_type != 'normal':
@@ -145,28 +149,32 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
         }
         test_args = PAP_App.pap_normal_data(input_normal)
         output_normal = PAP_App.optimal_test(test_args, .05)
-        global t
+
         t = output_normal["t"].round(2)
-        t_filtered = t.query('t > 0').sort_values('t')
+        t_filtered = t.query('t > 0').sort_values('t')        
+        table = dash_table.DataTable(
+            data=t_filtered.to_dict('records'),
+            columns=[{'name': i, 'id': i} for i in t_filtered.columns]
+        )
         
-        return dash_table.DataTable(
-                data=t_filtered.to_dict('records'),
-                columns=[{'name': i, 'id': i} for i in t_filtered.columns]
-            )
+        return table, t.to_csv()
 
 @app.callback(
     Output("download-data", "data"),
-        [Input("btn_csv", "n_clicks")],
-        [dash.dependencies.State('data-type', 'value')],
+    [Input("btn_csv", "n_clicks")],
+    [State('data-type', 'value'),
+     State('store-t-binary', 'data'),
+     State('store-t-normal', 'data')],
     prevent_initial_call=True,
 )
-def download_pap(n_clicks, data_type):
-    global t
-    if isinstance(t, pd.DataFrame):
-        if data_type == 'binary':
-            return dcc.send_data_frame(t.to_csv, "pap_binary.csv", index=False)
-        elif data_type == 'normal':
-            return dcc.send_data_frame(t.to_csv, "pap_normal.csv", index=False)
+def download_pap(n_clicks, data_type, t_binary, t_normal):
+    if n_clicks is None:
+        raise dash.exceptions.PreventUpdate
+
+    if data_type == 'binary':
+        return dict(content=t_binary, filename="pap_binary.csv", type='text/csv')
+    elif data_type == 'normal':
+        return dict(content=t_normal, filename="pap_normal.csv", type='text/csv')
 
 
 
