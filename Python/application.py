@@ -59,8 +59,16 @@ app.layout = html.Div([
         dbc.Col(html.Button("Download Data", id="btn_csv", style={'margin-bottom': '20px'}))]),
     dcc.Download(id="download-data"),
     html.Hr(),
-    html.Div(id='output-binary', style={'display': 'none'}),
-    html.Div(id='output-normal', style={'display': 'none'}),
+    html.Div([
+        html.Div(id='power-binary', style={'text-align': 'center', 'font-size': '20px'}),
+        html.Br(),
+        html.Div(id='output-binary')
+    ], id='output-fields-binary', style={'display': 'none'}),
+    html.Div([
+        html.Div(id='power-normal', style={'text-align': 'center', 'font-size': '20px'}),
+        html.Br(),
+        html.Div(id='output-normal')
+    ], id='output-fields-normal', style={'display': 'none'}),   
     dcc.Store(id='store-t-binary'),
     dcc.Store(id='store-t-normal')
 ], style={'margin': '10%'})
@@ -79,8 +87,8 @@ def toggle_input_fields(data_type):
         return {'display': 'none'}, {'display': 'none'}
 
 @app.callback(
-    [Output('output-binary', 'style'),
-     Output('output-normal', 'style')],
+    [Output('output-fields-binary', 'style'),
+     Output('output-fields-normal', 'style')],
     [Input('data-type', 'value')]
 )
 def toggle_output(data_type):
@@ -93,7 +101,8 @@ def toggle_output(data_type):
 
 
 @app.callback(
-    [Output('output-binary', 'children'),
+    [Output('power-binary', 'children'),
+     Output('output-binary', 'children'),
      Output('store-t-binary', 'data')],
     [Input('run-button', 'n_clicks')],
     [State('data-type', 'value'),
@@ -113,20 +122,23 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
             'beta': float(input_beta)
         }
         test_args = PAP_App.pap_binary_data(input_binary)
-        output_binary = PAP_App.optimal_test(test_args, .05)
+        opt_test_binary = PAP_App.optimal_test(test_args, .05)
 
-        t = output_binary["t"].round(2)
+        power_message = f"Expected power: {opt_test_binary['power'].round(2)}"
+
+        t = opt_test_binary["t"].round(2)
         t_filtered = t.query('t > 0').sort_values('t')        
         table = dash_table.DataTable(
             data=t_filtered.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in t_filtered.columns]
         )
         
-        return table, t.to_csv()
+        return power_message, table, t.to_csv()
 
 
 @app.callback(
-    [Output('output-normal', 'children'),
+    [Output('power-normal', 'children'),
+     Output('output-normal', 'children'),
      Output('store-t-normal', 'data')],
     [Input('run-button', 'n_clicks')],
     [State('data-type', 'value'),
@@ -148,16 +160,18 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
             'Sigma': np.array(eval(input_Sigma))
         }
         test_args = PAP_App.pap_normal_data(input_normal)
-        output_normal = PAP_App.optimal_test(test_args, .05)
+        opt_test_normal = PAP_App.optimal_test(test_args, .05)
 
-        t = output_normal["t"].round(2)
+        power_message = f"Expected power: {opt_test_normal['power'].round(2)}"
+
+        t = opt_test_normal["t"].round(2)
         t_filtered = t.query('t > 0').sort_values('t')        
         table = dash_table.DataTable(
             data=t_filtered.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in t_filtered.columns]
         )
         
-        return table, t.to_csv()
+        return power_message, table, t.to_csv()
 
 @app.callback(
     Output("download-data", "data"),
