@@ -27,18 +27,18 @@ pap_binary_data_simple = function(etaJ, # prob of observing each component
         
         # calculate power
         # all subsets of 1:i
-            J = map(0:(2 ^ i - 1), ~ as.numeric(intToBits(.x))[1:i]) 
-            # bernoulli distributions for the components of J, with different probabilities
-            P_J = map_dbl(J, ~ prod(.x * eta_sorted$x[1:i] + (1 - .x) * (1 - eta_sorted$x[1:i])))
-            X = map(0:(2 ^ i - 1), ~ as.numeric(intToBits(.x))[1:i])
-            P_X = map_dbl(X, ~ beta(sum(.x) + alpha, i - sum(.x) + beta) / beta(alpha, beta))
-            power = 0
-            for (a in 1:length(J)) {
-                for (b in 1:length(X)){
-                    if (sum(J[[a]]*X[[b]]) > z) {power = power + P_J[a] * P_X[b]}
-                    else if (sum(J[[a]]*X[[b]]) == z) {power = power + kappa * P_J[a] * P_X[b]}
-                }
+        J = map(0:(2 ^ i - 1), ~ as.numeric(intToBits(.x))[1:i]) 
+        # bernoulli distributions for the components of J, with different probabilities
+        P_J = map_dbl(J, ~ prod(.x * eta_sorted$x[1:i] + (1 - .x) * (1 - eta_sorted$x[1:i])))
+        X = map(0:(2 ^ i - 1), ~ as.numeric(intToBits(.x))[1:i])
+        P_X = map_dbl(X, ~ beta(sum(.x) + alpha, i - sum(.x) + beta) / beta(alpha, beta))
+        power = 0
+        for (a in 1:length(J)) {
+            for (b in 1:length(X)){
+                if (sum(J[[a]]*X[[b]]) > z) {power = power + P_J[a] * P_X[b]}
+                else if (sum(J[[a]]*X[[b]]) == z) {power = power + kappa * P_J[a] * P_X[b]}
             }
+        }
         
         if (power > optimal_power){
             optimal_power = power

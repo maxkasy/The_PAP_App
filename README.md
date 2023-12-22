@@ -6,14 +6,14 @@ You want to **do the right thing**. This means that you will not p-hack your res
 At the same time you *would* like to **maximize the probability of rejecting your null hypothesis**. You believe there is an effect there, and you want to prove it to the world. What should you do? This tutorial will show how to use the PAP App to answer this question.
 For further details, please refer to our working paper [Optimal Pre-Analysis Plans: Statistical Decisions Subject to Implementability](https://maxkasy.github.io/home/files/papers/optimal_preanalysis_plans.pdf).
 
-The easiest way to use the app is to go to the interactive dashboard at [https://maxkasy.shinyapps.io/The_PAP_App/](https://maxkasy.shinyapps.io/The_PAP_App/).
-In this notebook, we will however instead use the Python script `PAP_App.py` to obtain the same results.
+The easiest way to use the app is to go to the interactive app at [The PAP App](http://pap-env.eba-tjdispek.us-east-1.elasticbeanstalk.com/).
+In this notebook, we will however instead use the Python script `PAP_Optimal.py` to obtain the same results.
 This script can be downloaded from [https://github.com/maxkasy/The_PAP_App](https://github.com/maxkasy/The_PAP_App). 
 The following loads the functions from the Python script, as well as the required packages (`numpy`, `pandas`, `scipy`, `itertools`, and `cvxpy`):
 
 
 ```python
-run PAP_App
+run PAP_Optimal
 ```
 
 Next we need to specify the parameters of our problem, which will then determine the optimal PAP. These parameters pin down (1) the null hypothesis to be tested, (2) prior beliefs over the true parameter, and (3) prior beliefs over the availability of specific tests or estimates for the data that you will obtain.
@@ -74,6 +74,19 @@ t_bin[t_bin["t"]>0].sort_values(by = ["t", "X1", "X2"])
 
 
 <div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
