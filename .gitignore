@@ -47,3 +47,11 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+*.tex
+
+__pycache__/
+
+.DS_Store
+
+.ipynb_checkpoints/
