@@ -11,33 +11,48 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.title = "The PAP App"
 server = app.server
 
+# App layout
 app.layout = html.Div([
-    html.H1('The PAP App', className='text-center mb-4'),
-    dcc.Dropdown(
-        id='data-type',
-        options=[
-            {'label': 'Binary Data', 'value': 'binary'},
-            {'label': 'Normal Data', 'value': 'normal'}
-        ],
-        placeholder="Select a data type"
-    ),
-    html.Hr(),
+    html.Div([
+        "Source code and help: ", 
+        dcc.Link('Github', href='https://github.com/maxkasy/The_PAP_App', target='_blank'),
+    ], style={'text-align': 'right'}),
+    html.Div([
+        "© 2023 ", 
+        dcc.Link('Maximilian Kasy', href='https://maxkasy.github.io/home/', target='_blank'),
+    ], style={'text-align': 'right'}),
+    html.H1('The PAP App', className='text-center mb-4', style={'margin': '50px 0'}),
+    dbc.Row([
+        dbc.Col(dcc.Dropdown(
+            id='data-type',
+            options=[
+                {'label': 'Binary Data', 'value': 'binary'},
+                {'label': 'Normal Data', 'value': 'normal'}
+            ],
+            placeholder="Select a data type"
+        )),
+        dbc.Col(dcc.Checklist(id='simple-cutoff', options=[{'label': ' Simple cut-off rule', 'value': 'SCR'}], value=[])),
+        dbc.Col(html.Label('Size of test')),
+        dbc.Col(dcc.Input(id='input-size', type='number', placeholder="Enter size value", value=.05, step=.05))
+    ], className='mb-3'),
+    html.Hr(style={'margin': '40px 0'}),
+    # Input fields for binary data
     html.Div([
         dbc.Row([
             dbc.Col(html.Label('Prob of observing')),
             dbc.Col(dcc.Input(id='input-etaJ-binary', type='text', placeholder="Enter etaJ values (comma separated)", value=".9,.7,.5")),
             dbc.Col(html.Label('Null hypothesis')),
-            dbc.Col(dcc.Input(id='input-minp', type='number', placeholder="Enter minp value", value=".05", step="0.05"))
+            dbc.Col(dcc.Input(id='input-minp', type='number', placeholder="Enter minp value", value=.05, step=.05))
         ], className='mb-3'),
         dbc.Row(html.Label('Parameters of Beta prior')),
         dbc.Row([
             dbc.Col(html.Label('alpha')),
-            dbc.Col(dcc.Input(id='input-alpha', type='number', placeholder="Enter alpha value", value="1", step="0.1")),
+            dbc.Col(dcc.Input(id='input-alpha', type='number', placeholder="Enter alpha value", value=1, step=0.1)),
             dbc.Col(html.Label('beta')),
-            dbc.Col(dcc.Input(id='input-beta', type='number', placeholder="Enter beta value", value="1", step="0.1"))
+            dbc.Col(dcc.Input(id='input-beta', type='number', placeholder="Enter beta value", value=1, step=0.1))
         ], className='mb-3'),
-        dbc.Row([dcc.Checklist(id='simple-cutoff-binary', options=[{'label': ' Simple cut-off rule', 'value': 'SCR'}], value=[])],  className='mb-3'),
     ], id='input-fields-binary', style={'display': 'none'}),
+    # Input fields for normal data
     html.Div([
         dbc.Row([
             dbc.Col(html.Label('Prob of observing')),
@@ -57,12 +72,12 @@ app.layout = html.Div([
             dbc.Col(html.Label('Prior variance matrix')),
             dbc.Col(dcc.Input(id='input-Sigma', type='text', placeholder="Enter Sigma values (matrix)", value="[[2, 1], [1, 2]]"))
         ], className='mb-3'),
-        dbc.Row([dcc.Checklist(id='simple-cutoff-normal', options=[{'label': ' Simple cut-off rule', 'value': 'SCR'}], value=[])],  className='mb-3'),
     ], id='input-fields-normal', style={'display': 'none'}),
     dbc.Row([dbc.Col(html.Button('Run', id='run-button')),
-        dbc.Col(html.Button("Download PAP", id="btn_csv", style={'margin-bottom': '20px'}))]),
+        dbc.Col(html.Button("Download PAP", id="btn_csv"))]),
     dcc.Download(id="download-data"),
-    html.Hr(),
+    html.Hr(style={'margin': '40px 0'}),
+    # Output fields
     html.Div([
         html.Div(id='power-binary', style={'text-align': 'center', 'font-size': '20px'}),
         html.Br(),
@@ -72,11 +87,12 @@ app.layout = html.Div([
         html.Div(id='power-normal', style={'text-align': 'center', 'font-size': '20px'}),
         html.Br(),
         html.Div(id='output-normal')
-    ], id='output-fields-normal', style={'display': 'none'}),   
+    ], id='output-fields-normal', style={'display': 'none'}),
     dcc.Store(id='store-t-binary'),
     dcc.Store(id='store-t-normal')
 ], style={'margin': '10%'})
 
+# Switching input fields based on data type
 @app.callback(
     [Output('input-fields-binary', 'style'),
      Output('input-fields-normal', 'style')],
@@ -90,6 +106,7 @@ def toggle_input_fields(data_type):
     else:
         return {'display': 'none'}, {'display': 'none'}
 
+# Switching output fields based on data type
 @app.callback(
     [Output('output-fields-binary', 'style'),
      Output('output-fields-normal', 'style')],
@@ -103,7 +120,7 @@ def toggle_output(data_type):
     else:
         return {'display': 'none'}, {'display': 'none'}
 
-
+# Calculating optimal PAP for binary data
 @app.callback(
     [Output('power-binary', 'children'),
      Output('output-binary', 'children'),
@@ -114,9 +131,10 @@ def toggle_output(data_type):
      State('input-minp', 'value'),
      State('input-alpha', 'value'),
      State('input-beta', 'value'),
-     State('simple-cutoff-binary', 'value')]
+     State('input-size', 'value'),
+     State('simple-cutoff', 'value')]
 )
-def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, input_alpha, input_beta, simple_cutoff_binary):
+def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, input_alpha, input_beta, input_size, simple_cutoff):
     if n_clicks is None or data_type != 'binary':
         raise dash.exceptions.PreventUpdate
     else:
@@ -126,16 +144,16 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
             'alpha': float(input_alpha),
             'beta': float(input_beta)
         }
-        if simple_cutoff_binary == []:
+        if simple_cutoff == []:
             test_args = PAP_Optimal.pap_binary_data(input_binary)
-            opt_test_binary = PAP_Optimal.optimal_test(test_args, .05)
+            opt_test_binary = PAP_Optimal.optimal_test(test_args, input_size)
 
             power_message = f"Expected power: {opt_test_binary['power'].round(2)}"
 
             t = opt_test_binary["t"].round(2)
             t_filtered = t.query('t > 0').sort_values('t')                 
         else:
-            opt_simple_binary = PAP_Simple.pap_binary_data_simple(input_binary, .05)
+            opt_simple_binary = PAP_Simple.pap_binary_data_simple(input_binary, input_size)
             power_message = f"Expected power: {opt_simple_binary['power'].round(2)}"
             t = opt_simple_binary["test"]  
             t_filtered = t
@@ -148,10 +166,7 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
          
         return power_message, table, t.to_csv(index=False)
 
-
-
-
-
+# Calculating optimal PAP for normal data
 @app.callback(
     [Output('power-normal', 'children'),
      Output('output-normal', 'children'),
@@ -163,9 +178,10 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
      State('input-Sigma0', 'value'),
      State('input-mu', 'value'),
      State('input-Sigma', 'value'),
-     State('simple-cutoff-normal', 'value')]
+     State('input-size', 'value'),
+     State('simple-cutoff', 'value')]
 )
-def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, input_Sigma0, input_mu, input_Sigma, simple_cutoff_normal):
+def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, input_Sigma0, input_mu, input_Sigma, input_size, simple_cutoff):
     if n_clicks is None or data_type != 'normal':
         raise dash.exceptions.PreventUpdate
     else:
@@ -176,16 +192,16 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
             'mu': np.array([float(i) for i in input_mu.split(',')]),
             'Sigma': np.array(eval(input_Sigma))
         }
-        if simple_cutoff_normal == []:
+        if simple_cutoff == []:
             test_args = PAP_Optimal.pap_normal_data(input_normal)
-            opt_test_normal = PAP_Optimal.optimal_test(test_args, .05)
+            opt_test_normal = PAP_Optimal.optimal_test(test_args, input_size)
 
             power_message = f"Expected power: {opt_test_normal['power'].round(2)}"
 
             t = opt_test_normal["t"].round(2)
             t_filtered = t.query('t > 0').sort_values('t')        
         else:
-            opt_simple_normal = PAP_Simple.pap_normal_data_simple(input_normal, .05)
+            opt_simple_normal = PAP_Simple.pap_normal_data_simple(input_normal, input_size)
             power_message = f"Expected power: {opt_simple_normal['power'].round(2)}"
             t = opt_simple_normal["test"]     
             t_filtered = t
@@ -198,6 +214,8 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
         
         return power_message, table, t.to_csv(index=False)
 
+
+# Download PAP
 @app.callback(
     Output("download-data", "data"),
     [Input("btn_csv", "n_clicks")],
