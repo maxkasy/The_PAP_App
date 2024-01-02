@@ -6,7 +6,7 @@ You want to **do the right thing**. This means that you will not p-hack your res
 At the same time you *would* like to **maximize the probability of rejecting your null hypothesis**. You believe there is an effect there, and you want to prove it to the world. What should you do? This tutorial will show how to use the PAP App to answer this question.
 For further details, please refer to our working paper [Optimal Pre-Analysis Plans: Statistical Decisions Subject to Implementability](https://maxkasy.github.io/home/files/papers/optimal_preanalysis_plans.pdf).
 
-The easiest way to use the app is to go to the interactive app at [The PAP App](http://pap-env.eba-tjdispek.us-east-1.elasticbeanstalk.com/).
+The easiest way to use the app is to go to the interactive app at [The PAP App](https://pap-app.onrender.com/).
 In this notebook, we will however instead use the Python script `PAP_Optimal.py` to obtain the same results.
 This script can be downloaded from [https://github.com/maxkasy/The_PAP_App](https://github.com/maxkasy/The_PAP_App). 
 The following loads the functions from the Python script, as well as the required packages (`numpy`, `pandas`, `scipy`, `itertools`, and `cvxpy`):
