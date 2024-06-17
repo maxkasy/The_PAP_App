@@ -126,7 +126,7 @@ def pap_normal_data(input_normal):
     P_J = {tuple(j):np.prod(etaJ[list(j)]) * np.prod(1-etaJ[list(set(K) - set(j))]) for j in JJ}
     
     # Vector of normal quantiles for discretization
-    steps = 60
+    steps = 40
     quantile_vec = np.linspace(0,1,steps+1)
     quantile_vec[0] = 1e-10 # to avoid infinite values
     quantile_vec[steps] = 1-1e-10 # to avoid infinite values
