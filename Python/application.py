@@ -18,7 +18,7 @@ app.layout = html.Div([
         dcc.Link('Github', href='https://github.com/maxkasy/The_PAP_App', target='_blank'),
     ], style={'text-align': 'right'}),
     html.Div([
-        "© 2023 ", 
+        "© 2024 ", 
         dcc.Link('Maximilian Kasy', href='https://maxkasy.github.io/home/', target='_blank'),
     ], style={'text-align': 'right'}),
     html.H1('The PAP App', className='text-center mb-4', style={'margin': '50px 0'}),
