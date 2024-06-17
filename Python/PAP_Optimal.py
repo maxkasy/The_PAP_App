@@ -81,65 +81,6 @@ def optimal_test(test_args, size = .05):
     return {"tb": tb.value.round(3), 
             "power": result, 
             "t": t}
-
-# def optimal_test(test_args, size):
-#     """Find the optimal test, which maximizes expected power,
-#     subject to the constraints of size control and implementability.
-#     test_args is a list which needs to include matrices J and X 
-#     (with rows for possible realizations), and vectors P_J, P_X, and P_0X
-#     (with the probabilities of these realizations)."""
-    
-#     J = test_args["J"]>0 # Covert to boolean for logical indexing
-#     X = test_args["X"]
-#     N,n = X.shape
-#     dim = N + N * 2 ** n
-
-#     # Define objective and constraints; the latter as sparse matrices
-#     objective = np.concatenate((np.zeros(N), 
-#                                 np.tile(test_args["P_X"], 2 ** n) * 
-#                                 np.repeat(test_args["P_J"], N)))
-#     size_constraint = csr_matrix((test_args["P0_X"], (np.tile(0,N), range(N))), 
-#                                  shape = (1,dim))
-    
-#     # Construct monotonicity constraints by iteration
-#     monotonicity_constraint = lil_matrix((2 * (N ** 2) * (2 ** n), dim))
-#     r = 0 # row in constraint matrix    
-#     for j_int in range(2 ** n):
-#         j = J[j_int]
-#         for x_int in range(N):
-#                 for xprime_int in range(N):
-#                     if np.all(X[x_int][j] == X[xprime_int][j]):
-#                         # add one constraint to the constraint matrix
-#                         monotonicity_constraint[r,xprime_int] = -1
-#                         monotonicity_constraint[r,N + x_int + N * j_int] = 1
-#                         r+=1
-#     monotonicity_constraint = monotonicity_constraint.tocsr()[:r]
-    
-#     # Define objective and constraint for cvxpy
-#     tb = cp.Variable(dim)
-#     cp_objective = cp.Maximize(objective @ tb)
-#     cp_constraints = [size_constraint @ tb <= size,
-#                       tb <= 1, tb >=0,
-#                       monotonicity_constraint @ tb <= 0]
-    
-#     cp_problem = cp.Problem(cp_objective, cp_constraints)    
-#     # Solve the problem
-#     result = cp_problem.solve(solver = cp.CLARABEL)
-
-#     # Format output
-#     t = np.hstack((X,tb.value[:N].round(3).reshape((N,1))))
-#     t = pd.DataFrame(t, 
-#                   columns=[f"X{num}" for num in range(1,X.shape[1]+1)] + ["t"])
-#     if "X_lower" in test_args: # Add lower bounds for cells to the output, for normal data
-#         Xl = pd.DataFrame(test_args["X_lower"], 
-#                   columns=[f"Xl{num}" for num in range(1,X.shape[1]+1)])
-#         t = pd.concat([Xl, t], axis = 1)
-#     return {"tb": tb.value.round(3), 
-#             "power": result, 
-#             "t": t}
-#             # "t": dict(zip(names, t))}
-    
-    
     
 def pap_binary_data(input_binary):
     """From a  specification of null-hypothesis and prior,
@@ -187,8 +128,8 @@ def pap_normal_data(input_normal):
     # Vector of normal quantiles for discretization
     steps = 60
     quantile_vec = np.linspace(0,1,steps+1)
-    quantile_vec[0] = 1e-10
-    quantile_vec[steps] = 1-1e-10
+    quantile_vec[0] = 1e-10 # to avoid infinite values
+    quantile_vec[steps] = 1-1e-10 # to avoid infinite values
     norm_step_vec = norm.ppf(quantile_vec)
     
     X_component_quantiles = np.array([mu0[i] + np.sqrt(Sigma0[i,i]) * norm_step_vec for i in range(n)]).transpose()
