@@ -5,6 +5,9 @@ import itertools as it
 from scipy.special import beta
 from scipy.stats import mvn, norm
 from scipy.sparse import csr_matrix, lil_matrix
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 def powerset(iterable):
     """Helper function to create powerset from iterable"""
@@ -108,7 +111,7 @@ def pap_binary_data(input_binary):
     return {"X": X, "P_J": P_J, "P0_X": P0_X, "P_X": P_X}
 
 
-def pap_normal_data(input_normal):
+def pap_normal_data(input_normal, steps = 40):
     """From a  specification of null-hypothesis and prior,
     prepare the test_args required for optimal_test,
     for normal data X."""
@@ -126,7 +129,6 @@ def pap_normal_data(input_normal):
     P_J = {tuple(j):np.prod(etaJ[list(j)]) * np.prod(1-etaJ[list(set(K) - set(j))]) for j in JJ}
     
     # Vector of normal quantiles for discretization
-    steps = 40
     quantile_vec = np.linspace(0,1,steps+1)
     quantile_vec[0] = 1e-10 # to avoid infinite values
     quantile_vec[steps] = 1-1e-10 # to avoid infinite values
@@ -142,3 +144,23 @@ def pap_normal_data(input_normal):
     P0_X = {tuple(X_upper[r]):mvn.mvnun(X_upper[r], X_lower[r], mu0, Sigma0)[0] for r in range(len(X_upper))}
     
     return {"X": X_upper, "X_lower": X_lower, "P_J": P_J, "P0_X": P0_X, "P_X": P_X}
+
+
+
+def plot_normal_pap(t, steps = 40, max_coord = 2.5):
+    """Plotting the optimal PAP for the normal case, when n = 2"""
+
+    fig, ax = plt.subplots()
+    X1 = np.append(np.unique(t["Xl1"]), max_coord)
+    X2 = np.append(np.unique(t["Xl2"]), max_coord)
+    values = np.reshape(t['t'], (steps, steps))
+
+    ax.pcolormesh(X1, X2, values, cmap='Blues')
+
+    ax.set_xlim([-max_coord,max_coord])
+    ax.set_ylim([-max_coord,max_coord])
+    ax.set_aspect('equal')
+
+    plt.close(fig)
+
+    return fig

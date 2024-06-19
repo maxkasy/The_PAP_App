@@ -51,7 +51,7 @@ optimal_test = function(X, #list of values for x
     }
     # Drop unused rows
     dense_monotonicity_constraint = dense_monotonicity_constraint[1:i, ]
-    
+  
     # combine constraints
     dense_constr_mat = rbind(dense_size_constraint,
                              dense_support_constraint,

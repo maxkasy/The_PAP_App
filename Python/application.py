@@ -6,6 +6,8 @@ import dash
 from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+import io # For converting figure to image
+import base64
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.title = "The PAP App"
@@ -86,7 +88,9 @@ app.layout = html.Div([
     html.Div([
         html.Div(id='power-normal', style={'text-align': 'center', 'font-size': '20px'}),
         html.Br(),
-        html.Div(id='output-normal')
+        html.Div(id='output-normal'),
+        html.Img(id='output-fig-normal', 
+         style={'display': 'block', 'marginLeft': 'auto', 'marginRight': 'auto'}),
     ], id='output-fields-normal', style={'display': 'none'}),
     dcc.Store(id='store-t-binary'),
     dcc.Store(id='store-t-normal')
@@ -162,6 +166,7 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
                 data=t_filtered.to_dict('records'),
                 columns=[{'name': i, 'id': i} for i in t_filtered.columns],
                 style_cell={'minWidth': '100px', 'maxWidth': '200px'},
+                style_table={'maxHeight': '300px', 'overflowY': 'auto'},
             )  
          
         return power_message, table, t.to_csv(index=False)
@@ -170,7 +175,8 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
 @app.callback(
     [Output('power-normal', 'children'),
      Output('output-normal', 'children'),
-     Output('store-t-normal', 'data')],
+     Output('store-t-normal', 'data'),
+     Output('output-fig-normal', 'src')],
     [Input('run-button', 'n_clicks')],
     [State('data-type', 'value'),
      State('input-etaJ-normal', 'value'),
@@ -182,15 +188,17 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
      State('simple-cutoff', 'value')]
 )
 def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, input_Sigma0, input_mu, input_Sigma, input_size, simple_cutoff):
+    img = dash.no_update  # Initialize img to dash.no_update
+
     if n_clicks is None or data_type != 'normal':
         raise dash.exceptions.PreventUpdate
     else:
         input_normal = {
-            'etaJ': np.array([float(i) for i in input_etaJ_normal.split(',')]),
-            'mu0': np.array([float(i) for i in input_mu0.split(',')]),
-            'Sigma0': np.array(eval(input_Sigma0)),
-            'mu': np.array([float(i) for i in input_mu.split(',')]),
-            'Sigma': np.array(eval(input_Sigma))
+            'etaJ': np.array([float(i) for i in input_etaJ_normal.split(',')], ndmin=1),
+            'mu0': np.array([float(i) for i in input_mu0.split(',')], ndmin=1),
+            'Sigma0': np.array(eval(input_Sigma0), ndmin=2),
+            'mu': np.array([float(i) for i in input_mu.split(',')], ndmin=1),
+            'Sigma': np.array(eval(input_Sigma), ndmin=2)
         }
         if simple_cutoff == []:
             test_args = PAP_Optimal.pap_normal_data(input_normal)
@@ -199,7 +207,16 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
             power_message = f"Expected power: {opt_test_normal['power'].round(2)}"
 
             t = opt_test_normal["t"].round(2)
-            t_filtered = t.query('t > 0').sort_values('t')        
+            t_filtered = t.query('t > 0').sort_values('t')     
+
+            if len(input_normal["etaJ"]) == 2:
+                fig = PAP_Optimal.plot_normal_pap(t)
+                # Convert the matplotlib figure to a base64 image
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png')
+                buf.seek(0)
+                image_base64 = base64.b64encode(buf.read()).decode()
+                img = 'data:image/png;base64,{}'.format(image_base64)
         else:
             opt_simple_normal = PAP_Simple.pap_normal_data_simple(input_normal, input_size)
             power_message = f"Expected power: {opt_simple_normal['power'].round(2)}"
@@ -210,9 +227,10 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
                 data=t_filtered.to_dict('records'),
                 columns=[{'name': i, 'id': i} for i in t_filtered.columns],
                 style_cell={'minWidth': '100px', 'maxWidth': '200px'},
+                style_table={'maxHeight': '300px', 'overflowY': 'auto'}
             )  
         
-        return power_message, table, t.to_csv(index=False)
+        return power_message, table, t.to_csv(index=False), img
 
 
 # Download PAP
