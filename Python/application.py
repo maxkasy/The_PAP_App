@@ -188,7 +188,7 @@ def update_output_binary(n_clicks, data_type, input_etaJ_binary, input_minp, inp
      State('simple-cutoff', 'value')]
 )
 def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, input_Sigma0, input_mu, input_Sigma, input_size, simple_cutoff):
-    img = dash.no_update  # Initialize img to dash.no_update
+    img = ''  # Initialize img to empty path
 
     if n_clicks is None or data_type != 'normal':
         raise dash.exceptions.PreventUpdate
@@ -200,6 +200,10 @@ def update_output_normal(n_clicks, data_type, input_etaJ_normal, input_mu0, inpu
             'mu': np.array([float(i) for i in input_mu.split(',')], ndmin=1),
             'Sigma': np.array(eval(input_Sigma), ndmin=2)
         }
+        errormessage = PAP_Optimal.check_input_normal(input_normal)
+        if errormessage != "":
+            return errormessage, '', {},''
+
         if simple_cutoff == []:
             test_args = PAP_Optimal.pap_normal_data(input_normal)
             opt_test_normal = PAP_Optimal.optimal_test(test_args, input_size)

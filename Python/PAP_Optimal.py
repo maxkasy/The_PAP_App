@@ -145,7 +145,24 @@ def pap_normal_data(input_normal, steps = 40):
     
     return {"X": X_upper, "X_lower": X_lower, "P_J": P_J, "P0_X": P0_X, "P_X": P_X}
 
+def check_input_normal(input_normal):
+    message = ""
+    n = len(input_normal["etaJ"])
 
+    if len(input_normal["mu0"]) != n:
+        message = "Null mean has the wrong dimension"
+    elif len(input_normal["mu"]) != n:
+        message = "Prior mean has the wrong dimension"
+    elif input_normal["Sigma0"].shape != (n,n):
+        message = "Null variance has the wrong dimension"
+    elif input_normal["Sigma"].shape != (n,n):
+        message = "Prior variance has the wrong dimension"
+    elif not np.array_equal(input_normal["Sigma0"], input_normal["Sigma0"].T):
+        message = "Null variance is not symmetric"
+    elif not np.array_equal(input_normal["Sigma"], input_normal["Sigma"].T):
+        message = "Prior variance is not symmetric"
+        
+    return message
 
 def plot_normal_pap(t, steps = 40, max_coord = 2.5):
     """Plotting the optimal PAP for the normal case, when n = 2"""
